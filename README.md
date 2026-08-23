@@ -111,7 +111,7 @@ travelMind-ai/
 │   │   ├── weather.py         # OpenWeatherMap tool ✅
 │   │   ├── search.py          # Tavily web search tool ✅
 │   │   ├── flights.py         # SerpApi Google Flights tool ✅
-│   │   ├── hotels.py          # SerpApi Google Hotels tool
+│   │   ├── hotels.py          # SerpApi Google Hotels tool ✅
 │   │   ├── trains.py          # Indian Railways tool
 │   │   └── attractions.py     # Attractions + activities tool
 │   ├── integrations/
