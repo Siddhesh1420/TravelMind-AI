@@ -50,22 +50,23 @@ def search_flights(from_city,to_city,date,type,travel_class,stops,max_price,sort
         best_flights.sort(key=lambda x: x.get("price", float('inf')))
     return best_flights[:3]  # Return top 3 flights
 
-from_city = input("Enter departure city: ")
-to_city = input("Enter arrival city: ")
+if __name__ == "__main__":
+    from_city = input("Enter departure city: ")
+    to_city = input("Enter arrival city: ")
 
-from_code= get_airport_code(from_city)
-to_code= get_airport_code(to_city)
-if from_code is None or to_code is None:
-    print("Airport code not found for one or both cities.")
-    exit()
+    from_code= get_airport_code(from_city)
+    to_code= get_airport_code(to_city)
+    if from_code is None or to_code is None:
+        print("Airport code not found for one or both cities.")
+        exit()
 
-date = input("Enter date (YYYY-MM-DD): ")
-type = int(input("Enter type (one-way/round-trip): "))
-travel_class = int(input("Enter travel class (economy/business/first): "))
-stops = int(input("Enter number of stops (0/1/2): "))
-max_price = int(input("Enter maximum price: "))
-adults = int(input("Enter number of adults: "))
-children = int(input("Enter number of children: "))
-sort_by = int(input("Enter sort by (1: Price, 2: Duration, 3: Departure Time): "))
-flights = search_flights(from_city, to_city, date, type, travel_class, stops, max_price, sort_by,  adults, children)
-print(flights)
+    date = input("Enter date (YYYY-MM-DD): ")
+    type = int(input("Enter type (one-way/round-trip): "))
+    travel_class = int(input("Enter travel class (economy/business/first): "))
+    stops = int(input("Enter number of stops (0/1/2): "))
+    max_price = int(input("Enter maximum price: "))
+    adults = int(input("Enter number of adults: "))
+    children = int(input("Enter number of children: "))
+    sort_by = int(input("Enter sort by (1: Price, 2: Duration, 3: Departure Time): "))
+    flights = search_flights(from_city, to_city, date, type, travel_class, stops, max_price, sort_by,  adults, children)
+    print(flights)
