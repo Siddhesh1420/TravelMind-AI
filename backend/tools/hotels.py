@@ -2,7 +2,7 @@ from serpapi import GoogleSearch
 from dotenv import load_dotenv
 import os 
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv()
 
 def search_hotels(destination,check_in,check_out,rating,free_cancellation,currency="INR",sort_by=3,adults=1,children=0,min_price=None,max_price=None):
     """ 

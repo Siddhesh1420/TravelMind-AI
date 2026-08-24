@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import airportsdata
 import os
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv()
 airports = airportsdata.load('IATA')
 
 def get_airport_code(city):
