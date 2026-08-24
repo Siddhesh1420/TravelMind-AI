@@ -24,6 +24,8 @@ def search_hotels(destination,check_in,check_out,rating,free_cancellation,curren
         "api_key": os.getenv("SERPAPI_KEY")
     }
     
+    params={k:v for k,v in params.items() if v is not None}
+    
     search=GoogleSearch(params)
     results=search.get_dict()
     hotels=results.get("properties",[])
