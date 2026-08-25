@@ -20,7 +20,7 @@ def search_trains(from_city,to_city,date,departure_time,arrival_time):
     day = date_obj.strftime("%A")  # Get the day of the week
     
     query=f"Trains from {from_city} to {to_city} on {date} on {day} IRCTC schedule timings which departs at or after {departure_time} and reaches at or before {arrival_time} classes . Also find the fare for all the trains."
-    res=tavily_client.search(query)
+    res=tavily_client.search(query,max_results=10)
     
     search_text="\n".join([r['content'] for r in res['results']])
     
@@ -48,7 +48,7 @@ def search_trains(from_city,to_city,date,departure_time,arrival_time):
     response = model.chat.completions.create(
     model="openai/gpt-oss-20b",
     messages=[{"role": "user", "content": prompt}],
-    max_tokens=7000,
+    max_tokens=4000,
     temperature=0.1
 )
     ans=response.choices[0].message.content
