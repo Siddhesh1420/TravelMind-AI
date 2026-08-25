@@ -112,8 +112,8 @@ travelMind-ai/
 │   │   ├── search.py          # Tavily web search tool ✅
 │   │   ├── flights.py         # SerpApi Google Flights tool ✅
 │   │   ├── hotels.py          # SerpApi Google Hotels tool ✅
-│   │   ├── trains.py          # Indian Railways tool
-│   │   └── attractions.py     # Attractions + activities tool
+│   │   ├── trains.py          # Indian Railways tool ✅
+│   │   └── attractions.py     # Attractions + activities tool ✅
 │   ├── integrations/
 │   │   ├── whatsapp.py        # Twilio two-way WhatsApp
 │   │   └── calendar.py        # Google Calendar integration
@@ -230,11 +230,11 @@ LLM-powered supervisor that evaluates output quality from each agent and routes 
 | Component | Status |
 |-----------|--------|
 | Weather tool | ✅ Complete |
-| Search tool | 🔄 In Progress |
-| Flights tool | 🔄 In Progress |
-| Hotels tool | 🔄 In Progress |
-| Trains tool | 🔄 In Progress |
-| Attractions tool | 🔄 In Progress |
+| Search tool | ✅ Complete |
+| Flights tool | ✅ Complete |
+| Hotels tool | ✅ Complete |
+| Trains tool | ✅ Complete |
+| Attractions tool | ✅ Complete |
 | Research agent | ⏳ Pending |
 | Planner agent | ⏳ Pending |
 | Writer agent | ⏳ Pending |
