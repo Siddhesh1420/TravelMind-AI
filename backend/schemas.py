@@ -38,3 +38,7 @@ class TrainInfo(BaseModel):
     duration: str=Field(...,description="Duration in HH::MM format")
     classes: List[str]=Field(...,description="Llist of classes")
     days: str=Field(...,description="Days on which train run . eg: Daily or 'MTWTFSS' ")
+    
+class HotelInfo(BaseModel):
+    name: str=Field(...,description="Name of hotel")
+    rating
