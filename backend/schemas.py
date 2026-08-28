@@ -41,4 +41,5 @@ class TrainInfo(BaseModel):
     
 class HotelInfo(BaseModel):
     name: str=Field(...,description="Name of hotel")
-    rating
+    rating: float=Field(...,description="Give rating out of 5")
+    
