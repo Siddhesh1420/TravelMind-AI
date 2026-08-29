@@ -55,4 +55,25 @@ class DayPlan(BaseModel):
     afternoon: str=Field(...,description="Afternoon Plan")
     evening: str=Field(...,description="Evening plan")
     weather: WeatherInfo=Field(...,description="Weather info")
-    estimated_cost: str=Field(...,description="Estimated cost")
+    estimated_cost: int=Field(...,description="Estimated cost in INR")
+
+class TripResponse(BaseModel):
+    destination: str=Field(...,description="Place to visit")
+    start_date: str=Field(...,description="Start date of the trip in YYYY-MM-DD format")
+    end_date: str=Field(...,description="End date of the trip in YYYY-MM-DD format")
+    total_days: int=Field(...,description="No. of days of trip")
+    itinerary: List[DayPlan]=Field(...,description="Complete details day-wise")
+    flights: List[FlightInfo]=Field(...,description="Flight Info")
+    trains: List[TrainInfo]=Field(...,description="train Info")
+    hotels: List[HotelInfo]=Field(...,description="Hotel Info")
+    budget_breakdown: dict=Field(...,description="Breakdown of budget")
+    total_estimated_cost: int=Field(...,description="Total estimated cost")
+    formatted_report: str=Field(...,description="Report of all detials")
+    recommendations: Optional[List[str]]=Field([],description="List of recommendations ")
+
+class WhatsAppInput(BaseModel):
+    phone_number: str=Field(...,description="Phone number of the user")
+    message: str=Field(...,description="Message you want to sent")
+    user_id: Optional[str]=Field(None,description="Email or unique identifier of the user")
+    
+    
