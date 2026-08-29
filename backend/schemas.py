@@ -47,3 +47,12 @@ class HotelInfo(BaseModel):
     amenities: List[str]=Field(...,description="List of amenities")
     check_in_time: str=Field(...,description="Check in time")
     check_out_time: str=Field(...,description="Check out time")
+    
+class DayPlan(BaseModel):
+    day_number: int=Field(...,description="Day number")
+    date: str=Field(...,description="Date in YYYY-MM-DD format")
+    morning: str=Field(...,description="Morning Plan")
+    afternoon: str=Field(...,description="Afternoon Plan")
+    evening: str=Field(...,description="Evening plan")
+    weather: WeatherInfo=Field(...,description="Weather info")
+    estimated_cost: str=Field(...,description="Estimated cost")
