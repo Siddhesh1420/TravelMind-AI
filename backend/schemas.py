@@ -56,7 +56,7 @@ class DayPlan(BaseModel):
     morning: str=Field(...,description="Morning Plan")
     afternoon: str=Field(...,description="Afternoon Plan")
     evening: str=Field(...,description="Evening plan")
-    weather: WeatherInfo=Field(...,description="Weather info")
+    weather: Optional[WeatherInfo]=Field(None,description="Weather info")
     estimated_cost: int=Field(...,description="Estimated cost in INR")
 
 class TripResponse(BaseModel):

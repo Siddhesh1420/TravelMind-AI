@@ -1,12 +1,18 @@
 from datetime import datetime
 from dotenv import load_dotenv
 from groq import Groq
+from pydantic import BaseModel 
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from schemas import DayPlan
 
 load_dotenv()
 
 groq_api=os.getenv('GROQ_API_KEY')
 model=Groq(api_key=groq_api)
+
+class BudgetBreakdown(BaseModel):
 
 def plan_node(state):
     """
@@ -17,6 +23,14 @@ def plan_node(state):
     budget=state['budget']
     travel_mode=state['travel_mode']
     group_size=state['group_size']
+    preferences=state.get('preferences',[])
+    weather_data = state.get('weather_data', {})
+    flights = state.get('flights', [])
+    trains = state.get('trains', [])
+    hotels = state.get('hotels', [])
+    attractions = state.get('attractions', {})
+    travel_tips = state.get('travel_tips', [])
+    orchestrator_feedback = state.get('orchestrator_feedback', '')
     start_date=state['start_date']
     end_date=state['end_date']
     
@@ -39,7 +53,7 @@ def plan_node(state):
     - From: {from_city}
     - Travel mode: {travel_mode}
     - Budget: ₹{budget}
-    - Group size: {group_size} people
+    - Group size: {group_size}
     - Preferences: {preferences}
 
     Available data:
