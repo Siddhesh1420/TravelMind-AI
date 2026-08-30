@@ -119,15 +119,23 @@ def plan_node(state):
             
         # Validating data
         plan=PlannerOutput(**data)
+        
+        return{
+                    **state,
+                    "itinerary":[day.dict() for day in plan.itinerary],
+                    "budget_breakdown": plan.budget_breakdown.dict(),
+                    "recommended_hotel": plan.recommended_hotel,
+                    "recommended_flight_or_train": plan.recommended_flight_or_train,
+                    "total_estimated_cost":plan.total_estimated_cost,
+                    "replan_needed": plan.replan_needed,
+                    "replan_reason":plan.replan_reason,
+                    "plan_complete": True
+                }
+        
     except (json.JSONDecodeError, Exception) as e:
         return{
             **state,
-            "itineary":[day.dict() for day in plan.itinerary],
-            "budget_breakdown": plan.budget_breakdown.dict(),
-            "recommended_hotel": plan.recommended_hotel,
-            "recommended_flight_or_train": plan.recommended_flight_or_train,
-            "total_estimated_cost":plan.total_estimated_cost,
-            "replan_needed": plan.replan_needed,
-            "replan_reason":plan.replan_reason,
-            "plan_complete": True
+            "replan_needed": True,
+            "replan_reason":f"Failed to parse planner output {str(e)}",
+            "plan_complete": False
         }
