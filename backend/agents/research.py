@@ -37,7 +37,7 @@ def research_node(state):
     # Weather
     weather=get_weather(destination)
     if not weather:
-        print("Weather forecast unavilable . Only available for next 5 days from today")
+        weather={"message":"Weather forecast unavilable . Only available for next 5 days from today"}
     
     # Travel mode
         
