@@ -30,6 +30,9 @@ class TravelState(TypedDict):
     replan_needed: bool
     replan_reason: str
     plan_complete: bool
+    recommended_hotel:str
+    recommended_flight_or_train: str
+    total_estimated_cost: int
     
     # Orchestrator control
     next_agent: str

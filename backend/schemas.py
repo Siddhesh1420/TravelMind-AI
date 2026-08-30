@@ -58,6 +58,22 @@ class DayPlan(BaseModel):
     evening: str=Field(...,description="Evening plan")
     weather: Optional[WeatherInfo]=Field(None,description="Weather info")
     estimated_cost: int=Field(...,description="Estimated cost in INR")
+    
+class BudgetBreakdown(BaseModel):
+    transport: int = Field(..., description="Transport cost")
+    hotel: int = Field(..., description="Hotel cost")
+    food: int = Field(..., description="Food cost")
+    activities: int = Field(..., description="Activities cost")
+    total: int = Field(..., description="Total cost")
+
+class PlannerOutput(BaseModel):
+    itinerary: List[DayPlan]
+    recommended_hotel: str
+    recommended_flight_or_train: str
+    budget_breakdown: BudgetBreakdown
+    total_estimated_cost: int
+    replan_needed: bool
+    replan_reason: str
 
 class TripResponse(BaseModel):
     destination: str=Field(...,description="Place to visit")

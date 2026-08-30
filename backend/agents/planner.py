@@ -1,18 +1,18 @@
 from datetime import datetime
 from dotenv import load_dotenv
 from groq import Groq
-from pydantic import BaseModel 
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from schemas import DayPlan
+from schemas import PlannerOutput
+import json
 
 load_dotenv()
 
 groq_api=os.getenv('GROQ_API_KEY')
 model=Groq(api_key=groq_api)
 
-class BudgetBreakdown(BaseModel):
+
 
 def plan_node(state):
     """
@@ -100,12 +100,34 @@ def plan_node(state):
     "replan_reason": ""
     }}" '''
     
+    
     response = model.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=4000,
         temperature=0.1
     )
+    raw=response.choices[0].message.content
     
-    
-    
+    # In case of malformed JSON
+    try:
+        data=json.loads(raw) # loads read from string while load reads from object
+          
+        if data.get("total_estimated_cost",0)> budget :
+            data['replan_needed']=True
+            data['replan_reason']="Total estiamted cost exceeds the budget"
+            
+        # Validating data
+        plan=PlannerOutput(**data)
+    except (json.JSONDecodeError, Exception) as e:
+        return{
+            **state,
+            "itineary":[day.dict() for day in plan.itinerary],
+            "budget_breakdown": plan.budget_breakdown.dict(),
+            "recommended_hotel": plan.recommended_hotel,
+            "recommended_flight_or_train": plan.recommended_flight_or_train,
+            "total_estimated_cost":plan.total_estimated_cost,
+            "replan_needed": plan.replan_needed,
+            "replan_reason":plan.replan_reason,
+            "plan_complete": True
+        }
