@@ -7,6 +7,8 @@ class TripInput(BaseModel):
     start_date: str=Field(...,description="Start date of the trip in YYYY-MM-DD format")
     end_date: str=Field(...,description="End date of the trip in YYYY-MM-DD format")
     budget: int=Field(...,description="Total budget for the trip in INR")
+    departure_time: Optional[str] = Field("06:00", description="Preferred departure time HH:MM")
+    arrival_time: Optional[str] = Field("23:00", description="Latest acceptable arrival time HH:MM")
     group_size: int=Field(...,description="Number of people in a group")
     travel_mode: str=Field(...,description="Mode of travel (e.g., flight, train, bus, car)")
     preferences: Optional[List[str]]=Field([],description="List of preferences like . eg.['vegetarian','adventure','budget-friendly']")
