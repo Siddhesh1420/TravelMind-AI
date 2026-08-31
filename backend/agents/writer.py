@@ -19,15 +19,15 @@ def write_node(state):
     
     itinerary=state['itinerary']
     budget_breakdown=state['budget_breakdown']
-    recommended_hotel=state('recommended_hotel',0)
-    recommended_flight_or_train=state.get('recommended_flight_or_train',0)
+    recommended_hotel=state.get('recommended_hotel','')
+    recommended_flight_or_train=state.get('recommended_flight_or_train','')
     group_size=state['group_size']
     destination=state['destination']
     budget=state['budget']
-    weather_data=state['weather']
-    flights=state.get('flights',0)
-    trains=state.get('trains',0)
-    hotels=state.get('hotels',0)
+    weather_data=state.get('weather_data',{})
+    flights=state.get('flights',[])
+    trains=state.get('trains',[])
+    hotels=state.get('hotels',[])
     travel_tips=state['travel_tips']
     start_date=state['start_date']
     end_date=state['end_date']
@@ -106,7 +106,7 @@ def write_node(state):
 
     Return the WhatsApp message only. Nothing else."""
     
-    response2=model.chat.completion.create(
+    response2=model.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": whatsapp_prompt}],
         max_tokens=4000,
