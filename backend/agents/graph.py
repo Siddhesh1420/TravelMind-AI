@@ -1,4 +1,12 @@
 from typing import TypedDict,List,Optional,Any
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from langgraph.graph import StateGraph,END,START
+from agents.research import research_node
+from agents.planner import plan_node
+from agents.writer import write_node
+from agents.orchestrator import orchestrator_node
 
 class TravelState(TypedDict):
     # User input
@@ -47,4 +55,43 @@ class TravelState(TypedDict):
     report_complete: bool
     
 def route_to_agent(state):
-    return state.get('next_agent','research')
+    next_agent=state.get('next_agent','research')
+    if next_agent=="END":
+        return END
+    return next_agent
+
+def build_graph():
+    
+    graph=StateGraph(TravelState)
+    
+    # Added all nodes
+    graph.add_node("research",research_node)
+    graph.add_node("planner",plan_node)
+    graph.add_node("writer",write_node)
+    graph.add_node("orchestrator",orchestrator_node)
+    
+    # Starts from orchestrator
+    graph.add_edge(START,"orchestrator")
+    
+    # Addimg the conditional edge 
+    
+    graph.add_conditional_edges(
+        "orchestrator",route_to_agent,
+        {
+            "research":"research",
+            "planner":"planner",
+            "writer":"writer",
+            "END":END
+        }
+    )
+    
+    # Adding edge back to orchestrator
+    
+    graph.add_edge("research","orchestrator")
+    graph.add_edge("planner","orchestrator")
+    graph.add_edge("writer","orchestrator")
+    
+    return graph.compile()
+
+# Compiling the graph
+travel_mind_graph=build_graph()
