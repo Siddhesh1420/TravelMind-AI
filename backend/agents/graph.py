@@ -45,3 +45,6 @@ class TravelState(TypedDict):
     calendar_events: list
     booking_links: dict
     report_complete: bool
+    
+def route_to_agent(state):
+    return state.get('next_agent','research')
