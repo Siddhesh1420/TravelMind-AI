@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import os
-from groq import Groq
+from langchain_ollama import ChatOllama
 import json
 
 load_dotenv()
@@ -12,6 +12,7 @@ def orchestrator_node(state):
     """
     Supervises the whole travel planning system
     """
+    print("Calling agent orchestrator")
     
     replan_needed=state.get('replan_needed',False)
     plan_complete=state.get('plan_complete',False)
@@ -58,7 +59,7 @@ def orchestrator_node(state):
     response=model.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": eval_prompt}],
-        max_tokens=4000,
+        max_tokens=2000,
         temperature=0.1
     )
     

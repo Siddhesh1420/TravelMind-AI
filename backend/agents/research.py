@@ -15,6 +15,9 @@ def research_node(state):
     """
     Collects data required for the trip 
     """
+    
+    print("Calling agent research")
+    
     destination = state['destination']
     from_city = state['from_city']
     start_date = state['start_date']

@@ -12,12 +12,50 @@ load_dotenv()
 groq_api=os.getenv('GROQ_API_KEY')
 model=Groq(api_key=groq_api)
 
+def summarize_hotels(hotels):
+    return [
+        {
+            "name": h.get("name"),
+            "price_per_night": h.get("rate_per_night", {}).get("lowest"),
+            "rating": h.get("overall_rating"),
+        }
+        for h in hotels
+    ]
 
+# def summarize_attractions(attractions):
+#     if isinstance(attractions, dict):
+#         summarized = {}
+#         for k, v in attractions.items():
+#             if isinstance(v, list):
+#                 summarized[k] = [
+#                     {
+#                         "name": item.get("name") or item.get("title"),
+#                         "rating": item.get("rating"),
+#                         "description": (item.get("description") or "")[:150]
+#                     }
+#                     for item in v[:5]
+#                 ]
+#             else:
+#                 summarized[k] = v
+#         return summarized
+#     elif isinstance(attractions, list):
+#         return [
+#             {
+#                 "name": a.get("name") or a.get("title"),
+#                 "rating": a.get("rating"),
+#                 "description": (a.get("description") or "")[:150]
+#             }
+#             for a in attractions[:5]
+#         ]
+#     return attractions
 
 def plan_node(state):
     """
     Plans the trip
     """
+    
+    print("Calling agent planner")
+    
     from_city=state['from_city']
     destination=state['destination']
     budget=state['budget']
@@ -45,6 +83,8 @@ def plan_node(state):
             "replan_reason": "End date must be after start date"
         }
         
+    hotels_summary = summarize_hotels(hotels)
+    # attractions_summary = summarize_attractions(attractions)
     prompt=f'''You are an expert travel planner.
 
     Create a detailed {num_days}-day itinerary for a trip to {destination}.
@@ -60,7 +100,7 @@ def plan_node(state):
     - Weather: {weather_data}
     - Flights found: {flights}
     - Trains found: {trains}
-    - Hotels found: {hotels}
+    - Hotels found: {hotels_summary}
     - Attractions: {attractions}
     - Travel tips: {travel_tips}
     - Orchestrator feedback: {orchestrator_feedback}
@@ -100,11 +140,18 @@ def plan_node(state):
     "replan_reason": ""
     }}" '''
     
+    import json
+    print("hotels chars:", len(json.dumps(hotels)))
+    print("flights chars:", len(json.dumps(flights)))
+    print("trains chars:", len(json.dumps(trains)))
+    print("attractions chars:", len(json.dumps(attractions)))
+    print("weather chars:", len(json.dumps(weather_data)))
+    
     
     response = model.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=4000,
+        max_tokens=2000,
         temperature=0.1
     )
     raw=response.choices[0].message.content

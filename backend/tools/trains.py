@@ -1,7 +1,7 @@
 from tavily import TavilyClient
 import os
 from dotenv import load_dotenv
-from groq import Groq
+from langchain_ollama import ChatOllama 
 from datetime import datetime
 
 load_dotenv()
@@ -11,7 +11,7 @@ api=os.getenv('TAVILY_API_KEY')
 groq_api=os.getenv('GROQ_API_KEY')
 
 tavily_client = TavilyClient(api_key=api)
-model=Groq(api_key=groq_api)
+model=ChatOllama(model="qwen2.5:7b",temperature=0.1)
 
 def search_trains(from_city,to_city,date,departure_time,arrival_time):
     """
@@ -45,13 +45,8 @@ def search_trains(from_city,to_city,date,departure_time,arrival_time):
 
     Return top 3 trains as a JSON array only. Sort these trains first on fare then on duration and  then nearer to {departure_time}. Nothing else.
     '''
-    response = model.chat.completions.create(
-    model="openai/gpt-oss-20b",
-    messages=[{"role": "user", "content": prompt}],
-    max_tokens=4000,
-    temperature=0.1
-)
-    ans=response.choices[0].message.content
+    response=model.invoke(prompt)
+    ans=response.content
     return ans
 
 

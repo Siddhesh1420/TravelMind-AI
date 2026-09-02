@@ -16,6 +16,7 @@ def write_node(state):
     - Generates a concise WhatsApp summary message.
     - Constructs calendar events and direct booking links.
     """
+    print("Calling agent writer")
     
     itinerary=state['itinerary']
     budget_breakdown=state['budget_breakdown']
@@ -78,7 +79,7 @@ def write_node(state):
     response1 = model.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[{"role": "user", "content": report_prompt}],
-            max_tokens=4000,
+            max_tokens=2000,
             temperature=0.1
         )
     report=response1.choices[0].message.content
@@ -109,7 +110,7 @@ def write_node(state):
     response2=model.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": whatsapp_prompt}],
-        max_tokens=4000,
+        max_tokens=2000,
         temperature=0.1
     )
     whatsapp_msg=response2.choices[0].message.content
