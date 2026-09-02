@@ -1,13 +1,13 @@
 import os
 import sys
-from groq import Groq
 from dotenv import load_dotenv
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Look for file in previous directory too
 from tools.flight import get_airport_code
+from model import get_model,invoke_model
 
 load_dotenv()
-groq_api=os.getenv('GROQ_API_KEY')
-model=Groq(api_key=groq_api)
+
+model=get_model()
 
 def write_node(state):
     """
@@ -76,13 +76,7 @@ def write_node(state):
     Use emojis appropriately to make it visually appealing.
     Return the complete markdown report only. No extra text."""
     
-    response1 = model.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[{"role": "user", "content": report_prompt}],
-            max_tokens=2000,
-            temperature=0.1
-        )
-    report=response1.choices[0].message.content
+    report=invoke_model(model,report_prompt)
     
     whatsapp_prompt = f"""Create a concise WhatsApp message summarizing this trip plan.
 
@@ -107,13 +101,7 @@ def write_node(state):
 
     Return the WhatsApp message only. Nothing else."""
     
-    response2=model.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[{"role": "user", "content": whatsapp_prompt}],
-        max_tokens=2000,
-        temperature=0.1
-    )
-    whatsapp_msg=response2.choices[0].message.content
+    whatsapp_msg=invoke_model(model,whatsapp_prompt)
     
     calendar_event=[]
     

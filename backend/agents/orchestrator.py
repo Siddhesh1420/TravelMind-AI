@@ -1,12 +1,13 @@
 from dotenv import load_dotenv
 import os
-from langchain_ollama import ChatOllama
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Lokks for file even in previous directory
+from model import get_model,invoke_model
 import json
 
 load_dotenv()
 
-api=os.getenv('GROQ_API_KEY')
-model=Groq(api_key=api)
+model=get_model()
 
 def orchestrator_node(state):
     """
@@ -56,14 +57,8 @@ def orchestrator_node(state):
         "reason": "why you made this decision"
     }}"""
     
-    response=model.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[{"role": "user", "content": eval_prompt}],
-        max_tokens=2000,
-        temperature=0.1
-    )
     
-    output=response.choices[0].message.content
+    output=invoke_model(model,eval_prompt)
     
     try:
         raw=json.loads(output)

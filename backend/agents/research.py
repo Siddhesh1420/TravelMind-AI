@@ -1,7 +1,7 @@
 import sys
 import os
 from dotenv import load_dotenv
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Look for a file in previous directory too
 
 from tools.weather import get_weather
 from tools.flight import search_flights

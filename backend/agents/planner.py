@@ -1,16 +1,15 @@
 from datetime import datetime
 from dotenv import load_dotenv
-from groq import Groq
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # looks for a file evn in previous directory
 from schemas import PlannerOutput
+from model import get_model,invoke_model
 import json
 
 load_dotenv()
 
-groq_api=os.getenv('GROQ_API_KEY')
-model=Groq(api_key=groq_api)
+model=get_model()
 
 def summarize_hotels(hotels):
     return [
@@ -139,22 +138,8 @@ def plan_node(state):
     "replan_needed": false,
     "replan_reason": ""
     }}" '''
-    
-    import json
-    print("hotels chars:", len(json.dumps(hotels)))
-    print("flights chars:", len(json.dumps(flights)))
-    print("trains chars:", len(json.dumps(trains)))
-    print("attractions chars:", len(json.dumps(attractions)))
-    print("weather chars:", len(json.dumps(weather_data)))
-    
-    
-    response = model.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=2000,
-        temperature=0.1
-    )
-    raw=response.choices[0].message.content
+       
+    raw=invoke_model(model,prompt)
     
     # In case of malformed JSON
     try:
