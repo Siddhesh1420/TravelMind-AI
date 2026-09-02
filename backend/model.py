@@ -14,6 +14,7 @@ def get_model():
         from groq import Groq
         groq_api=os.getenv('GROQ_API_KEY')
         model=Groq(api_key=groq_api)
+    return model
         
 def invoke_model(model,prompt):
     """

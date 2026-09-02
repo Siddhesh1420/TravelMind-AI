@@ -74,6 +74,7 @@ class PlannerOutput(BaseModel):
     total_estimated_cost: int
     replan_needed: bool
     replan_reason: str
+    plan_complete: bool
 
 class TripResponse(BaseModel):
     destination: str=Field(...,description="Place to visit")
@@ -88,6 +89,7 @@ class TripResponse(BaseModel):
     total_estimated_cost: int=Field(...,description="Total estimated cost")
     formatted_report: str=Field(...,description="Report of all detials")
     recommendations: Optional[List[str]]=Field([],description="List of recommendations ")
+    transit_note: Optional[str] = Field("", description="Transit information if no direct route found")
 
 class WhatsAppInput(BaseModel):
     phone_number: str=Field(...,description="Phone number of the user")

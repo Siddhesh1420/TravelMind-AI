@@ -36,6 +36,7 @@ def write_node(state):
     total_estimated_cost=state['total_estimated_cost']
     travel_mode=state['travel_mode']
     phone_number=state.get('phone_number',"")
+    transit_note=state.get('transit_note','')
     
     report_prompt = f"""You are a professional travel report writer.
 
@@ -50,7 +51,7 @@ def write_node(state):
     - Total Budget: ₹{budget}
     - Recommended Hotel: {recommended_hotel}
     - Recommended Transport: {recommended_flight_or_train}
-
+    - Transit Note: {transit_note}
     Day by Day Itinerary:
     {itinerary}
 

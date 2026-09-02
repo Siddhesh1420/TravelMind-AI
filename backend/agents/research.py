@@ -9,8 +9,24 @@ from tools.trains import search_trains
 from tools.hotels import search_hotels
 from tools.search import search
 from tools.attractions import search_attractions
+import time
 
 load_dotenv()
+
+def call_with_retry(func,*args,max_retries=3,**kwargs):
+    for attempt in range(max_retries):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                print(f"Tool call failed (attempt {attempt+1}): {e}. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"Tool call failed after {max_retries} attempts: {e}")
+                return None  # return None so research_node handles gracefully
+            
+            
 def research_node(state):
     """
     Collects data required for the trip 
@@ -39,7 +55,7 @@ def research_node(state):
         hotel_rating = 8
     
     # Weather
-    weather=get_weather(destination)
+    weather=call_with_retry(get_weather,destination)
     if not weather:
         weather={"message":"Weather forecast unavilable . Only available for next 5 days from today"}
     
@@ -48,23 +64,28 @@ def research_node(state):
     flights=[]
     trains=[]
     if travel_mode =='flight':      
-        flights=search_flights(from_city,destination,start_date,type=2,travel_class=travel_class,stops=0,max_price=budget,sort_by=1,adults=group_size,children=0)
+        flights=call_with_retry(search_flights,from_city,destination,start_date,type=2,travel_class=travel_class,stops=0,max_price=budget,sort_by=1,adults=group_size,children=0) or []
         trains=[]
     elif travel_mode=='train':
-        trains=search_trains(from_city,destination,start_date,departure_time=state.get('departure_time',"06:00"),arrival_time=state.get('arrival_time',"23:00"))
+        trains=call_with_retry(search_trains,from_city,destination,start_date,departure_time=state.get('departure_time',"06:00"),arrival_time=state.get('arrival_time',"23:00")) or []
         flights=[]
     elif travel_mode in ['car','bus','road']:
         trains=[]
         flights=[]
+    
+    # Used to check if no direct flights or train found
+    transit_note = ""
+    if not flights and not trains and travel_mode in ['flight', 'train']:
+        transit_note = f"No direct {travel_mode} found from {from_city} to {destination}. May require transit via a nearby hub city."
         
     # Hotels    
-    hotels=search_hotels(destination,start_date,end_date,rating=hotel_rating,currency="INR",sort_by=3,adults=group_size,children=0,max_price=budget)
+    hotels=call_with_retry(search_hotels,destination,start_date,end_date,rating=hotel_rating,currency="INR",sort_by=3,adults=group_size,children=0,max_price=budget) or []
     
     # Attractions
-    attractions=search_attractions(destination)
+    attractions=call_with_retry(search_attractions,destination) or {}
     
     # Travel tips
-    tips=search(f"Travel tips for visiting {destination} things to know")
+    tips=call_with_retry(search, f"Travel tips for visiting {destination} things to know") or []
     return{
         **state,
         "weather_data":weather,
@@ -73,6 +94,7 @@ def research_node(state):
         "hotels":hotels,
         "attractions":attractions,
         "travel_tips":tips,
+        "transit_note":transit_note,
         "research_complete":True
     }
     

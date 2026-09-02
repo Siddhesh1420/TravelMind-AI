@@ -22,6 +22,7 @@ class TravelState(TypedDict):
     user_id: str
     departure_time: str
     arrival_time: str
+    transit_state: str
     
     # Research output
     weather_data: dict
@@ -56,8 +57,6 @@ class TravelState(TypedDict):
     
 def route_to_agent(state):
     next_agent=state.get('next_agent','research')
-    if next_agent=="END":
-        return END
     return next_agent
 
 def build_graph():
