@@ -74,8 +74,13 @@ def write_node(state):
     7. Important travel tips section
     8. Packing suggestions based on weather and activities
 
+    CRITICAL: Use ONLY the itinerary provided below. 
+    Do NOT invent any hotel names, activities or restaurants.
+    Actual itinerary: {itinerary}
+    
     Use emojis appropriately to make it visually appealing.
-    Return the complete markdown report only. No extra text."""
+    Return the complete markdown report only. No extra text.
+    """
     
     report=invoke_model(model,report_prompt)
     
@@ -128,6 +133,15 @@ def write_node(state):
     # Hotel booking link
     booking_links['hotel'] = f"https://www.booking.com/search.html?ss={destination}&checkin={start_date}&checkout={end_date}&group_adults={group_size}"
     
+    if not itinerary:
+        return {
+            **state,
+            "formatted_report": "Trip planning failed — could not generate itinerary.",
+            "whatsapp_message": "",
+            "calendar_events": [],
+            "booking_links": {},
+            "report_complete": False
+        }
     return{
         **state,
         "formatted_report":report,

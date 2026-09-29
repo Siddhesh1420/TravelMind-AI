@@ -85,7 +85,7 @@ def orchestrator_node(state):
     if not research_complete:
         current_agent = "research"
 
-    elif not plan_complete:
+    elif not plan_complete and not report_complete:
         current_agent = "planner"
 
     elif not report_complete:
@@ -168,6 +168,14 @@ Do not wrap the JSON in ```json.
 """
 
     output = invoke_model(model, eval_prompt)
+    
+    if not output or output.strip() == "":
+        return {
+            **state,
+            "replan_needed": True,
+            "replan_reason": "LLM returned empty response",
+            "plan_complete": False
+        }
 
     # PARSE LLM RESPONSE
 

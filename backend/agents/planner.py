@@ -47,7 +47,7 @@ def plan_node(state):
     
     start=datetime.strptime(start_date,"%Y-%m-%d")
     end=datetime.strptime(end_date,"%Y-%m-%d")
-    num_days=(end-start).days
+    num_days=(end-start).days+1
     
     if num_days<=0:
         return{
@@ -56,12 +56,37 @@ def plan_node(state):
             "replan_reason": "End date must be after start date"
         }
         
-    hotels_summary = summarize_hotels(hotels)
+    hotels_summary = summarize_hotels(hotels[:2])
     
+    # Trim flights
+    flights_slim = [
+        {
+            "price": f.get("price", ""),
+            "duration": f.get("total_duration", ""),
+            "airline": f.get("flights", [{}])[0].get("airline", "")
+        }
+        for f in flights[:2]
+    ]
+
+    # Trim trains
+    trains_slim = trains[:2]
+        
     transit_state=state.get('transit_state','')
     if not flights and not trains and travel_mode in ['flight', 'train']:
         transit_note = f"No direct {travel_mode} found from {from_city} to {destination}. Consider nearby transit hubs."
+    
+        # Trim attractions to first 3 per category
+    if attractions:
+        attractions_slim = {
+            "attractions": [a[:100] for a in attractions.get("attractions", [])[:3]],
+            "restaurants": [r[:100] for r in attractions.get("restaurants", [])[:3]],
+            "activities": [a[:100] for a in attractions.get("activities", [])[:3]]
+        }
+    else:
+        attractions_slim = {}
 
+    tips_slim = [t.get("content", "")[:150] for t in travel_tips[:2]]
+    
     prompt = f'''
     You are an expert travel planner.
 
@@ -78,11 +103,11 @@ def plan_node(state):
 
     AVAILABLE RESEARCH DATA:
     - Weather: {weather_data}
-    - Flights: {flights}
-    - Trains: {trains}
+    - Flights: {flights_slim}
+    - Trains: {trains_slim}
     - Hotels: {hotels_summary}
-    - Attractions: {attractions}
-    - Travel tips: {travel_tips}
+    - Attractions: {attractions_slim}
+    - Travel tips: {tips_slim}
     - transit state: {transit_state}
 
     ORCHESTRATOR FEEDBACK:
@@ -175,6 +200,9 @@ def plan_node(state):
     
     24.If transit_note is not empty — Day 1 morning MUST explicitly
     mention the transit journey and connection point
+    
+    25. Do NOT recommend the same restaurant more than once across 
+    the entire itinerary. Each meal must suggest a different place.
 
 
     JSON OUTPUT REQUIREMENTS:

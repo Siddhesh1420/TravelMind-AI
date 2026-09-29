@@ -74,7 +74,7 @@ class PlannerOutput(BaseModel):
     total_estimated_cost: int
     replan_needed: bool
     replan_reason: str
-    plan_complete: bool
+    plan_complete: bool=True
 
 class TripResponse(BaseModel):
     destination: str=Field(...,description="Place to visit")
