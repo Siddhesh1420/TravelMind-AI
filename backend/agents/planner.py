@@ -140,8 +140,12 @@ def plan_node(state):
     7. Account for travel time from {from_city} on the first day.
 
     8. IMPORTANT TRANSPORT RULE:
-    Only recommend a flight or train that actually appears in the
-    provided Flights or Trains research data.
+    8. If transport data is available, only recommend options from 
+   the provided Flights or Trains data.
+   If NO transport data is available, suggest the user research 
+   transport options independently and plan the itinerary 
+   focusing on activities and accommodation only.
+   Do NOT set replan_needed=true just because transport is missing.
 
     9. Do NOT assume that a train to a nearby city means the train
     directly reaches {destination}.

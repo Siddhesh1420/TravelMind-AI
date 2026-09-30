@@ -88,6 +88,11 @@ def research_node(state):
     tips=call_with_retry(search, f"Travel tips for visiting {destination} things to know") or []
     if tips:
         tips[:2]
+        
+    print(f"Travel mode: {travel_mode}")
+    print(f"Trains fetched: {trains}")
+    print(f"Flights fetched: {flights}")
+    print(f"Hotels fetched: {hotels}")
     return{
         **state,
         "weather_data":weather,
