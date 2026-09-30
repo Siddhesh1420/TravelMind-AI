@@ -1,14 +1,15 @@
-from datetime import datetime
-from dotenv import load_dotenv
-import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # looks for a file evn in previous directory
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from schemas import PlannerOutput
-from model import get_model,invoke_model
+from model import get_model, invoke_model
+from config.settings import (
+    MAX_HOTELS, MAX_FLIGHTS, MAX_TRAINS,
+    MAX_ATTRACTIONS, MAX_TIPS,
+    ATTRACTION_CONTENT_LENGTH, TIP_CONTENT_LENGTH
+)
 import json
-from datetime import timedelta # for date validation
-
-load_dotenv()
+from datetime import datetime,timedelta # for date validation
 
 model=get_model()
 
@@ -56,7 +57,7 @@ def plan_node(state):
             "replan_reason": "End date must be after start date"
         }
         
-    hotels_summary = summarize_hotels(hotels[:2])
+    hotels_summary = summarize_hotels(hotels[:MAX_HOTELS])
     
     # Trim flights
     flights_slim = [
@@ -65,11 +66,11 @@ def plan_node(state):
             "duration": f.get("total_duration", ""),
             "airline": f.get("flights", [{}])[0].get("airline", "")
         }
-        for f in flights[:2]
+        for f in flights[:MAX_FLIGHTS]
     ]
 
     # Trim trains
-    trains_slim = trains[:2]
+    trains_slim = trains[:MAX_TRAINS]
         
     transit_note=state.get('transit_note','')
     if not flights and not trains and travel_mode in ['flight', 'train']:
@@ -78,14 +79,14 @@ def plan_node(state):
         # Trim attractions to first 3 per category
     if attractions:
         attractions_slim = {
-            "attractions": [a[:100] for a in attractions.get("attractions", [])[:3]],
-            "restaurants": [r[:100] for r in attractions.get("restaurants", [])[:3]],
-            "activities": [a[:100] for a in attractions.get("activities", [])[:3]]
+            "attractions": [a[:ATTRACTION_CONTENT_LENGTH] for a in attractions.get("attractions", [])[:MAX_ATTRACTIONS]],
+            "restaurants": [r[:ATTRACTION_CONTENT_LENGTH] for r in attractions.get("restaurants", [])[:MAX_ATTRACTIONS]],
+            "activities": [a[:ATTRACTION_CONTENT_LENGTH] for a in attractions.get("activities", [])[:MAX_ATTRACTIONS]]
         }
     else:
         attractions_slim = {}
 
-    tips_slim = [t.get("content", "")[:150] for t in travel_tips[:2]]
+    tips_slim = [t.get("content", "")[:TIP_CONTENT_LENGTH] for t in travel_tips[:MAX_TIPS]]
     
     prompt = f'''
     You are an expert travel planner.

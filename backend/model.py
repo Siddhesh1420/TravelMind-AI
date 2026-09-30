@@ -1,20 +1,19 @@
-import os 
-from dotenv import load_dotenv
 import time
+from config.settings import (
+    USE_LOCAL, GROQ_MODEL, OLLAMA_MODEL,
+    LLM_TEMPERATURE, LLM_MAX_TOKENS, LLM_SLEEP_SECONDS,
+    GROQ_API_KEY, RETRY_BACKOFF,MAX_RETRIES
+)
 
-load_dotenv()
-
-use_local=os.getenv("USE_LOCAL","False").lower()=="true"
 
 def get_model():
-    if use_local:
+    if USE_LOCAL:
         from langchain_ollama import ChatOllama
-        model=ChatOllama(model="qwen2.5:7b",temperature=0.1)
+        model=ChatOllama(model=OLLAMA_MODEL,temperature=LLM_TEMPERATURE)
         
     else:
         from groq import Groq
-        groq_api=os.getenv('GROQ_API_KEY')
-        model=Groq(api_key=groq_api)
+        model=Groq(api_key=GROQ_API_KEY)
         # from huggingface_hub import InferenceClient
         # hf_api=os.getenv('HUGGINGFACE_API')
         # model=InferenceClient(api_key=hf_api)
@@ -25,24 +24,24 @@ def invoke_model(model,prompt):
     """
     Invoking model based on used_local
     """
-    time.sleep(5)
-    if use_local:
+    time.sleep(LLM_SLEEP_SECONDS)
+    if USE_LOCAL:
         result=model.invoke(prompt)
         return result.content
     else:
-        for attempt in range(3):
+        for attempt in range(MAX_RETRIES):
             try:
                 result = model.chat.completions.create(
-                    model="openai/gpt-oss-20b",
+                    model=GROQ_MODEL,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4000,
-                    temperature=0.1
+                    max_tokens=LLM_MAX_TOKENS,
+                    temperature=LLM_TEMPERATURE
                 )
                 return result.choices[0].message.content
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str and "tokens per minute" in error_str and attempt < 2:
-                    wait = 15 * (attempt + 1)
+                    wait = RETRY_BACKOFF * (attempt + 1)
                     print(f"TPM rate limited — waiting {wait}s...")
                     time.sleep(wait)
                 elif "429" in error_str and "tokens per day" in error_str:
@@ -50,7 +49,7 @@ def invoke_model(model,prompt):
                     return ""
                 else:
                     raise e
-            return ""
+        return ""
         
     #     result = model.chat.completions.create(
     #     model="zai-org/GLM-5.2",
