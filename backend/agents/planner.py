@@ -71,7 +71,7 @@ def plan_node(state):
     # Trim trains
     trains_slim = trains[:2]
         
-    transit_state=state.get('transit_state','')
+    transit_note=state.get('transit_note','')
     if not flights and not trains and travel_mode in ['flight', 'train']:
         transit_note = f"No direct {travel_mode} found from {from_city} to {destination}. Consider nearby transit hubs."
     
@@ -108,7 +108,7 @@ def plan_node(state):
     - Hotels: {hotels_summary}
     - Attractions: {attractions_slim}
     - Travel tips: {tips_slim}
-    - transit state: {transit_state}
+    - transit note: {transit_note}
 
     ORCHESTRATOR FEEDBACK:
     {orchestrator_feedback}
@@ -275,6 +275,15 @@ def plan_node(state):
     '''
        
     output=invoke_model(model,prompt)
+    
+    if not output or output.strip() == "":
+        print("Empty output — rate limited")
+        return {
+            **state,
+            "replan_needed": True,
+            "replan_reason": "LLM returned empty response — rate limit hit",
+            "plan_complete": False
+        }
     
     # In case of malformed JSON
     try:

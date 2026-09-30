@@ -22,7 +22,7 @@ class TravelState(TypedDict):
     user_id: str
     departure_time: str
     arrival_time: str
-    transit_state: str
+    transit_note: str
     
     # Research output
     weather_data: dict

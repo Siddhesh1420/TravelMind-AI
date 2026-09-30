@@ -171,11 +171,10 @@ Do not wrap the JSON in ```json.
     
     if not output or output.strip() == "":
         return {
-            **state,
-            "replan_needed": True,
-            "replan_reason": "LLM returned empty response",
-            "plan_complete": False
-        }
+        **state,
+        "next_agent": sequence.get(current_agent, "END"),
+        "orchestrator_feedback": "LLM empty response — moving forward",
+    }
 
     # PARSE LLM RESPONSE
 

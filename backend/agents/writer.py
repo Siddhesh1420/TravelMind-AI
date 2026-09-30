@@ -18,7 +18,6 @@ def write_node(state):
     """
     print("Calling agent writer")
     
-    itinerary=state['itinerary']
     budget_breakdown=state['budget_breakdown']
     recommended_hotel=state.get('recommended_hotel','')
     recommended_flight_or_train=state.get('recommended_flight_or_train','')
@@ -37,6 +36,17 @@ def write_node(state):
     travel_mode=state['travel_mode']
     phone_number=state.get('phone_number',"")
     transit_note=state.get('transit_note','')
+    itinerary=state['itinerary']
+    
+    if not itinerary:
+        return {
+            **state,
+            "formatted_report": "Trip planning failed — itinerary could not be generated.",
+            "whatsapp_message": "",
+            "calendar_events": [],
+            "booking_links": {},
+            "report_complete": True
+        }
     
     report_prompt = f"""You are a professional travel report writer.
 
@@ -133,15 +143,6 @@ def write_node(state):
     # Hotel booking link
     booking_links['hotel'] = f"https://www.booking.com/search.html?ss={destination}&checkin={start_date}&checkout={end_date}&group_adults={group_size}"
     
-    if not itinerary:
-        return {
-            **state,
-            "formatted_report": "Trip planning failed — could not generate itinerary.",
-            "whatsapp_message": "",
-            "calendar_events": [],
-            "booking_links": {},
-            "report_complete": False
-        }
     return{
         **state,
         "formatted_report":report,

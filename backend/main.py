@@ -34,6 +34,7 @@ def trip_plan(trip_input : TripInput):
     "user_id": trip_input.user_id or "",
     "departure_time": trip_input.departure_time or "06:00",
     "arrival_time": trip_input.arrival_time or "23:00",
+    "transit_note": "",
     "weather_data": {},
     "flights": [],
     "trains": [],
