@@ -10,6 +10,9 @@ def get_weather(city:str):
     api=os.getenv("OPENWEATHERMAP_API_KEY")
     response=requests.get(f'https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api}&units=metric')
     res=response.json()
+    if 'list' not in res:
+        print(f"Weather API error for {city}: {res.get('message', 'Unknown error')}")
+        return None
     l=res['list']
     d={}
     for i in l:
