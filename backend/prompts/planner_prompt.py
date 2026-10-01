@@ -1,197 +1,99 @@
-def get_planner_prompt(
-    num_days, destination, from_city, start_date,
-    end_date, travel_mode, budget, group_size,
-    preferences, weather_data, flights_slim,
-    trains_slim, hotels_summary, attractions_slim,
-    tips_slim, transit_note, orchestrator_feedback
-):
-    return f'''
-    You are an expert travel planner.
+def get_itinerary_prompt(num_days, destination, start_date, end_date, 
+                          preferences, weather_data, attractions_slim,
+                          transit_note, orchestrator_feedback,departure_time,arrival_time):
+    return f"""
+You are planning a trip to {destination}.
 
-    Create a detailed {num_days}-day itinerary for a trip to {destination}.
+ABSOLUTE REQUIREMENTS — DO NOT DEVIATE:
+- Destination: {destination} ONLY. Do not mention any other city as the main destination.
+- From city is the departure point only — traveller ARRIVES at {destination}.
+- Start date: {start_date} — this is Day 1 date. Non-negotiable.
+- End date: {end_date} — this is Day {num_days} date. Non-negotiable.
+- Total days: EXACTLY {num_days}. Not more, not less.
+- Preferred departure time from source city: {departure_time}
+- Must arrive at {destination} considering travel time
+- Last day departure should be around {arrival_time}
 
-    TRIP DETAILS:
-    - From: {from_city}
-    - Start date: {start_date}
-    - End date: {end_date}
-    - Travel mode: {travel_mode}
-    - Budget: ₹{budget}
-    - Group size: {group_size}
-    - Preferences: {preferences}
+Trip context:
+- Preferences: {preferences}
+- Weather at {destination}: {weather_data}
+- Things to do at {destination}: {attractions_slim}
+- Transit note: {transit_note}
 
-    AVAILABLE RESEARCH DATA:
-    - Weather: {weather_data}
-    - Flights: {flights_slim}
-    - Trains: {trains_slim}
-    - Hotels: {hotels_summary}
-    - Attractions: {attractions_slim}
-    - Travel tips: {tips_slim}
-    - transit note: {transit_note}
+RULES:
+1. ALL activities must be IN {destination} — not in any other city
+2. Day 1 date MUST be exactly {start_date}
+3. Day {num_days} date MUST be exactly {end_date}
+4. Dates must be consecutive starting from {start_date}
+5. Day 1 morning — traveller arrives at {destination}
+6. Last day afternoon/evening — traveller departs {destination}
+7. Use different restaurants each evening
+8. If weather shows rain — suggest indoor activities
+9. estimated_cost must be realistic — never 0
 
-    ORCHESTRATOR FEEDBACK:
-    {orchestrator_feedback}
+Return ONLY a JSON array — no other text, no markdown:
+[
+  {{
+    "day_number": 1,
+    "date": "{start_date}",
+    "morning": "Arrive at {destination}...",
+    "afternoon": "activity in {destination}",
+    "evening": "dinner at specific restaurant in {destination}",
+    "estimated_cost": 1500
+  }}
+]
+"""
 
+def get_budget_prompt(destination, num_days, budget, group_size,
+                       hotels_summary, flights_slim, trains_slim,
+                       flights_return_slim, trains_return_slim,
+                       travel_mode, departure_time, arrival_time):
+    return f"""
+Given this trip to {destination} for {num_days} days:
+- Total budget: ₹{budget}
+- Group size: {group_size} people
+- Travel mode: {travel_mode}
+- Preferred departure time: {departure_time}
+- Preferred arrival time: {arrival_time}
 
-    PLANNING RULES:
+Available outbound transport:
+- Flights: {flights_slim}
+- Trains: {trains_slim}
 
-    1. Create EXACTLY {num_days} itinerary entries.
+Available return transport:
+- Flights: {flights_return_slim}
+- Trains: {trains_return_slim}
 
-    2. The itinerary must contain one entry for EVERY day from
-    {start_date} through {end_date}.
+Available hotels: {hotels_summary}
 
-    3. Each itinerary entry MUST contain:
-    - day_number
-    - date
-    - morning
-    - afternoon
-    - evening
-    - estimated_cost
+RULES:
+1. recommended_hotel MUST be from hotels list
+2. recommended_flight_or_train MUST include BOTH outbound AND return options
+3. Transport cost = (outbound fare + return fare) × {group_size} people
+4. Hotel cost = price per night × {num_days} nights
+5. Food cost = daily food estimate × {group_size} people × {num_days} days
+6. budget_breakdown total MUST equal total_estimated_cost
+7. CRITICAL: total_estimated_cost MUST be less than or equal to ₹{budget}.
+   If transport alone exceeds the budget — set replan_needed: true and 
+   replan_reason: "Transport cost exceeds total budget. Consider cheaper 
+   options like train instead of flight, or reduce group size."
+   If total exceeds budget — set replan_needed: true with specific reason.
+   Never return a plan where total_estimated_cost > {budget}.
+8. Select transport closest to departure time {departure_time}
 
-    4. The first itinerary date MUST be {start_date}.
-    The last itinerary date MUST be {end_date}.
-
-    5. Day numbers MUST be consecutive:
-    1, 2, 3, ... {num_days}
-
-    6. DO NOT skip any day.
-
-    7. Account for travel time from {from_city} on the first day.
-
-    8. IMPORTANT TRANSPORT RULE:
-       If transport data is available, only recommend options from 
-       the provided Flights or Trains data.
-       If NO transport data is available, suggest the user research 
-       transport options independently and plan the itinerary 
-       focusing on activities and accommodation only.
-       Do NOT set replan_needed=true just because transport is missing.
-
-    9. Do NOT assume that a train to a nearby city means the train
-    directly reaches {destination}.
-
-    10. If the provided transport data only reaches another city,
-        describe the onward journey separately and do NOT claim that
-        the train directly reaches {destination}.
-
-    11. Recommend a hotel ONLY from the provided Hotels research data.
-
-    12. Recommend restaurants or food ONLY from the provided research data.
-
-    13. Do NOT invent:
-        - hotel names
-        - train names
-        - flight names
-        - restaurant names
-        - prices
-        - ratings
-        - travel times
-        - booking information
-        - attractions that are not supported by the research data
-
-    14. Use the provided attractions and research data when creating
-        the itinerary.
-
-    15. Apply the user's preferences:
-        {preferences}
-
-    16. If weather data is available for a particular itinerary day,
-        take it into account when planning activities.
-
-    17. Keep the total estimated cost within the budget of ₹{budget}.
-
-    18. The budget_breakdown total MUST equal total_estimated_cost.
-
-    19. If the planner cannot produce a complete and reliable itinerary
-        using the provided research data, set:
-        "replan_needed": true
-
-    20. If the itinerary contains fewer than {num_days} days,
-        "plan_complete" MUST be false.
-
-    21. If any required recommendation is invented or cannot be supported
-        by the research data, "plan_complete" MUST be false.
-
-    22. "plan_complete" can be true ONLY when:
-        - exactly {num_days} days are present
-        - dates are complete and consecutive
-        - day numbers are complete and consecutive
-        - the recommendations are supported by the research data
-        - the budget is valid
-        - the itinerary is internally consistent
-
-    23. Never set "plan_complete": true for a partial itinerary.
-    
-    24.If transit_note is not empty — Day 1 morning MUST explicitly
-    mention the transit journey and connection point
-    
-    25. Do NOT recommend the same restaurant more than once across 
-    the entire itinerary. Each meal must suggest a different place.
-
-
-    JSON OUTPUT REQUIREMENTS:
-
-    Return EXACTLY ONE JSON OBJECT.
-
-    Your response MUST:
-    - Start with {{
-    - End with }}
-    - Contain NO text before the JSON
-    - Contain NO text after the JSON
-    - Contain NO Markdown
-    - Contain NO ```json code fences
-    - Contain NO explanations
-    - Contain NO comments
-    - Use double quotes for all JSON keys and string values
-    - Use valid JSON syntax
-    - Use no trailing commas
-    - Be directly parseable using Python's json.loads()
-
-
-    RETURN EXACTLY THIS STRUCTURE:
-
-    {{
-        "itinerary": [
-            {{
-                "day_number": 1,
-                "date": "YYYY-MM-DD",
-                "morning": "activity description",
-                "afternoon": "activity description",
-                "evening": "activity description",
-                "estimated_cost": 0
-            }}
-        ],
-        "recommended_hotel": "hotel name and reason",
-        "recommended_flight_or_train": "option name and reason",
-        "budget_breakdown": {{
-            "transport": 0,
-            "hotel": 0,
-            "food": 0,
-            "activities": 0,
-            "total": 0
-        }},
-        "total_estimated_cost": 0,
-        "replan_needed": false,
-        "replan_reason": "",
-        "plan_complete": true
-    }}
-
-
-    FINAL VALIDATION BEFORE RESPONDING:
-
-    Before returning the JSON, verify internally:
-
-    - Is the itinerary length exactly {num_days}?
-    - Does it start on {start_date}?
-    - Does it end on {end_date}?
-    - Are all day numbers present from 1 to {num_days}?
-    - Are all dates consecutive?
-    - Is the recommended hotel present in the provided hotel data?
-    - Is the recommended train/flight present in the provided transport data?
-    - Were any facts, names, prices, or recommendations invented?
-    - Is total_estimated_cost within ₹{budget}?
-    - Does budget_breakdown.total equal total_estimated_cost?
-    - If ANY answer is NO, set "plan_complete": false and
-    "replan_needed": true.
-
-    Return ONLY the JSON object.
-    Nothing else.
-    '''
+Return ONLY this JSON:
+{{
+  "recommended_hotel": "hotel name and reason",
+  "recommended_flight_or_train": "outbound: X, return: Y",
+  "budget_breakdown": {{
+    "transport": 0,
+    "hotel": 0,
+    "food": 0,
+    "activities": 0,
+    "total": 0
+  }},
+  "total_estimated_cost": 0,
+  "replan_needed": false,
+  "replan_reason": ""
+}}
+"""

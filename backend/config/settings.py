@@ -8,8 +8,8 @@ USE_LOCAL = os.getenv("USE_LOCAL", "false").lower() == "true"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "4000"))
-LLM_SLEEP_SECONDS = int(os.getenv("LLM_SLEEP_SECONDS", "5"))
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "6000"))
+LLM_SLEEP_SECONDS = int(os.getenv("LLM_SLEEP_SECONDS", "15"))
 
 # ── API Keys ──────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")

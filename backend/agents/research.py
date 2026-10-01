@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Look for a file
 
 from tools.weather import get_weather
 from tools.flight import search_flights
+from tools.flight import get_airport_code
 from tools.trains import search_trains
 from tools.hotels import search_hotels
 from tools.search import search
@@ -60,7 +61,9 @@ def research_node(state):
         weather={"message":"Weather forecast unavilable . Only available for next 5 days from today"}
     
     # Travel mode
-        
+    
+    print(f"From airport: {get_airport_code(from_city)}")
+    print(f"To airport: {get_airport_code(destination)}")
     flights=[]
     trains=[]
     if travel_mode =='flight':      
@@ -72,6 +75,23 @@ def research_node(state):
     elif travel_mode in ['car','bus','road']:
         trains=[]
         flights=[]
+        
+    # Return journey
+    flights_return = []
+    trains_return = []
+
+    if travel_mode == 'flight':
+        flights_return = call_with_retry(
+            search_flights, destination, from_city, end_date,
+            type=2, travel_class=travel_class, stops=0,
+            max_price=budget, sort_by=1, adults=group_size, children=0
+        ) or []
+    elif travel_mode == 'train':
+        trains_return = call_with_retry(
+            search_trains, destination, from_city, end_date,
+            departure_time=state.get('departure_time', '06:00'),
+            arrival_time=state.get('arrival_time', '23:00')
+        ) or []
     
     # Used to check if no direct flights or train found
     transit_note = ""
@@ -98,6 +118,8 @@ def research_node(state):
         "weather_data":weather,
         "flights":flights,
         "trains":trains,
+        "flights_return": flights_return,
+        "trains_return": trains_return,
         "hotels":hotels,
         "attractions":attractions,
         "travel_tips":tips,

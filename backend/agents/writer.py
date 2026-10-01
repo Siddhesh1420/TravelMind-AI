@@ -9,6 +9,7 @@ load_dotenv()
 
 model=get_model()
 
+
 def write_node(state):
     """
     Writer agent node:
@@ -17,7 +18,7 @@ def write_node(state):
     - Constructs calendar events and direct booking links.
     """
     print("Calling agent writer")
-    
+    print(f"Writer called with itinerary length: {len(state.get('itinerary', []))}")
     budget_breakdown=state['budget_breakdown']
     recommended_hotel=state.get('recommended_hotel','')
     recommended_flight_or_train=state.get('recommended_flight_or_train','')

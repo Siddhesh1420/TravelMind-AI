@@ -5,7 +5,7 @@ from config.settings import (
     GROQ_API_KEY, RETRY_BACKOFF,MAX_RETRIES
 )
 
-
+print("USE_LOCAL : ",USE_LOCAL)
 def get_model():
     if USE_LOCAL:
         from langchain_ollama import ChatOllama
@@ -37,9 +37,13 @@ def invoke_model(model,prompt):
                     max_tokens=LLM_MAX_TOKENS,
                     temperature=LLM_TEMPERATURE
                 )
-                return result.choices[0].message.content
+                content = result.choices[0].message.content
+                print(f"Raw content: '{content[:100] if content else 'NONE'}'")
+                print(f"Finish reason: {result.choices[0].finish_reason}")
+                return content
             except Exception as e:
                 error_str = str(e)
+                print(f"Groq error: {error_str}")
                 if "429" in error_str and "tokens per minute" in error_str and attempt < 2:
                     wait = RETRY_BACKOFF * (attempt + 1)
                     print(f"TPM rate limited — waiting {wait}s...")

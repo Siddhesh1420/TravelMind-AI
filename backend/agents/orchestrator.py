@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import sys
+import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Look for a file in previous directory too
 from model import get_model, invoke_model
 import json
@@ -47,7 +48,9 @@ def orchestrator_node(state):
     # has already been executed.
     # If current agent has been executed more than 2 times,
     # do NOT ask the LLM. Move to the next agent.
-
+    
+    print(f"Current agent before sequence: {current_agent}")
+    print(f"Next in sequence: {sequence.get(current_agent, 'END')}")
     current_retry_count = retry_counts.get(current_agent, 0)
 
     if current_retry_count > 2:
@@ -91,6 +94,14 @@ def orchestrator_node(state):
 
     elif not report_complete:
         current_agent = "writer"
+        
+    if current_agent == "writer" and not report_complete :
+        print("Writer not yet run — routing directly to writer")
+        return {
+            **state,
+            "next_agent": "writer",
+            "orchestrator_feedback": ""
+        }
 
     # LLM EVALUATION
 
@@ -105,8 +116,7 @@ def orchestrator_node(state):
     trains=trains,
     hotels=hotels,
     itinerary=itinerary
-)
-
+    )
     output = invoke_model(model, eval_prompt)
     
     if not output or output.strip() == "":
@@ -186,7 +196,10 @@ def orchestrator_node(state):
 
     print(f"NEXT AGENT → {next_agent}")
 
-
+    
+    if next_agent == "planner":
+        print("Sleeping 20s before planner...")
+        time.sleep(20)
     # RETURN UPDATED STATE
     return {
         **state,

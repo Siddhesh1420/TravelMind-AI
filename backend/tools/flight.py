@@ -6,9 +6,53 @@ import os
 load_dotenv()
 airports = airportsdata.load('IATA')
 
+CITY_ALIASES = {
+    "goa": "GOI",
+    "bangalore": "BLR",
+    "bengaluru": "BLR",
+    "bombay": "BOM",
+    "calcutta": "CCU",
+    "madras": "MAA",
+    "trivandrum": "TRV",
+    "kochi": "COK",
+    "cochin": "COK",
+    "varanasi": "VNS",
+    "banaras": "VNS",
+    "shimla": "SLV",
+    "manali": "KUL",
+    "dehradun": "DED",
+    "mussoorie": "DED",
+    "leh": "IXL",
+    "srinagar": "SXR",
+    "jammu": "IXJ",
+    "amritsar": "ATQ",
+    "chandigarh": "IXC",
+    "nagpur": "NAG",
+    "bhopal": "BHO",
+    "indore": "IDR",
+    "raipur": "RPR",
+    "patna": "PAT",
+    "ranchi": "IXR",
+    "bhubaneswar": "BBI",
+    "visakhapatnam": "VTZ",
+    "vizag": "VTZ",
+    "coimbatore": "CJB",
+    "madurai": "IXM",
+    "agra": "AGR",
+    "jaipur": "JAI",
+    "udaipur": "UDR",
+    "jodhpur": "JDH",
+}
+
 def get_airport_code(city):
     """
     Get the IATA airport code for a given city"""
+    city_lower = city.lower().strip()
+    
+    # Check aliases first
+    if city_lower in CITY_ALIASES:
+        return CITY_ALIASES[city_lower]
+    
     for code, data in airports.items():
         if data['city'].lower() == city.lower():
             return code

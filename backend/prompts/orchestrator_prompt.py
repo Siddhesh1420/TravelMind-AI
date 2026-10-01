@@ -45,8 +45,9 @@ Rules:
 2. If research_complete is True and plan_complete is False, the planner
    has not successfully completed the plan, so retry the current agent.
 
-3. If replan_needed is True, the current plan needs revision, so retry
-   the current agent.
+3. If replan_needed is True due to budget — provide specific feedback:
+   "Budget exceeded. Suggest cheaper transport or reduce hotel cost."
+   This feedback goes to the planner for the next attempt.
 
 4. If plan_complete is True and report_complete is False, the planner
    has completed its task and the writer should eventually handle the

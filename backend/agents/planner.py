@@ -9,9 +9,10 @@ from config.settings import (
     ATTRACTION_CONTENT_LENGTH, TIP_CONTENT_LENGTH
 )
 import json
-from prompts.planner_prompt import get_planner_prompt
+from prompts.planner_prompt import get_itinerary_prompt,get_budget_prompt
 from datetime import datetime,timedelta # for date validation
-
+import time
+import re
 model=get_model()
 
 def summarize_hotels(hotels):
@@ -24,6 +25,7 @@ def summarize_hotels(hotels):
         for h in hotels
     ]
 
+time.sleep(10)
 def plan_node(state):
     """
     Plans the trip
@@ -40,6 +42,8 @@ def plan_node(state):
     weather_data = state.get('weather_data', {})
     flights = state.get('flights', [])
     trains = state.get('trains', [])
+    flights_return = state.get('flights_return', [])
+    trains_return = state.get('trains_return', [])
     hotels = state.get('hotels', [])
     attractions = state.get('attractions', {})
     travel_tips = state.get('travel_tips', [])
@@ -72,6 +76,16 @@ def plan_node(state):
 
     # Trim trains
     trains_slim = trains[:MAX_TRAINS]
+    
+    flights_return_slim = [
+    {
+        "price": f.get("price", ""),
+        "duration": f.get("total_duration", ""),
+        "airline": f.get("flights", [{}])[0].get("airline", "")
+    }
+    for f in flights_return[:MAX_FLIGHTS]
+]
+    trains_return_slim = trains_return[:MAX_TRAINS]
         
     transit_note=state.get('transit_note','')
     if not flights and not trains and travel_mode in ['flight', 'train']:
@@ -89,84 +103,133 @@ def plan_node(state):
 
     tips_slim = [t.get("content", "")[:TIP_CONTENT_LENGTH] for t in travel_tips[:MAX_TIPS]]
     
-    prompt = get_planner_prompt(
-    num_days=num_days,
-    destination=destination,
-    from_city=from_city,
-    start_date=start_date,
-    end_date=end_date,
-    travel_mode=travel_mode,
-    budget=budget,
-    group_size=group_size,
-    preferences=preferences,
-    weather_data=weather_data,
-    flights_slim=flights_slim,
-    trains_slim=trains_slim,
-    hotels_summary=hotels_summary,
-    attractions_slim=attractions_slim,
-    tips_slim=tips_slim,
-    transit_note=transit_note,
-    orchestrator_feedback=orchestrator_feedback
-)
-       
-    output=invoke_model(model,prompt)
-    
-    if not output or output.strip() == "":
-        print("Empty output — rate limited")
+    itinerary_prompt = get_itinerary_prompt(
+        num_days=num_days,
+        destination=destination,
+        start_date=start_date,
+        end_date=end_date,
+        preferences=preferences,
+        weather_data=weather_data,
+        attractions_slim=attractions_slim,
+        transit_note=transit_note,
+        orchestrator_feedback=orchestrator_feedback,
+        departure_time=state.get('departure_time', '06:00'),
+        arrival_time=state.get('arrival_time', '23:00')
+    )
+
+    print(f"Itinerary prompt tokens: {len(itinerary_prompt) // 4}")
+    itinerary_output = invoke_model(model, itinerary_prompt)
+    print(f"Itinerary output length: {len(itinerary_output) if itinerary_output else 0}")
+    print(f"Itinerary preview: {itinerary_output[:200] if itinerary_output else 'EMPTY'}")
+
+    if not itinerary_output or itinerary_output.strip() == "":
         return {
             **state,
             "replan_needed": True,
-            "replan_reason": "LLM returned empty response — rate limit hit",
+            "replan_reason": "LLM returned empty itinerary",
             "plan_complete": False
         }
-    
-    # In case of malformed JSON
-    try:
-        output=output.strip()
-        if output.startswith("```json"):
-            output = output[len("```json"):].strip()
 
-        if output.endswith("```"):
-            output = output[:-3].strip()
-        data=json.loads(output) # loads read from string while load reads from object
-        
-        # Adding date validation to ensure the itinerary dates are within the start and end date range
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        for i, day in enumerate(data['itinerary']):
-            expected_date = (start + timedelta(days=i)).strftime("%Y-%m-%d")
-            if day.get('date') != expected_date:
-                print(f"Date mismatch day {i+1}: got {day.get('date')}, fixing to {expected_date}")
-                day['date'] = expected_date
-            if day.get('day_number') != i+1:
-                day['day_number'] = i+1  
-                
-        if data.get("total_estimated_cost",0)> budget :
-            data['replan_needed']=True
-            data['replan_reason']="Total estiamted cost exceeds the budget"
-        
-            
-        # Validating data
-        plan=PlannerOutput(**data)
-        
-        return{
-                    **state,
-                    "itinerary":[day.dict() for day in plan.itinerary],
-                    "budget_breakdown": plan.budget_breakdown.dict(),
-                    "recommended_hotel": plan.recommended_hotel,
-                    "recommended_flight_or_train": plan.recommended_flight_or_train,
-                    "total_estimated_cost":plan.total_estimated_cost,
-                    "replan_needed": plan.replan_needed,
-                    "replan_reason":plan.replan_reason,
-                    "plan_complete": plan.plan_complete
-                }
-        
-    except (json.JSONDecodeError, Exception) as e:
-        print("Planner JSON error:", e)
-        print("Raw output:", output)
-        
-        return{
+    # Call 2 — Generate budget and recommendations
+    budget_prompt = get_budget_prompt(
+    destination=destination,
+    num_days=num_days,
+    budget=budget,
+    group_size=group_size,
+    hotels_summary=hotels_summary,
+    flights_slim=flights_slim,
+    trains_slim=trains_slim,
+    flights_return_slim=flights_return_slim,
+    trains_return_slim=trains_return_slim,
+    travel_mode=travel_mode,
+    departure_time=state.get('departure_time', '06:00'),
+    arrival_time=state.get('arrival_time', '23:00')
+)
+
+    print(f"Budget prompt tokens: {len(budget_prompt) // 4}")
+    budget_output = invoke_model(model, budget_prompt)
+    print(f"Budget output length: {len(budget_output) if budget_output else 0}")
+    print(f"Budget preview: {budget_output[:200] if budget_output else 'EMPTY'}")
+
+    if not budget_output or budget_output.strip() == "":
+        return {
             **state,
             "replan_needed": True,
-            "replan_reason":f"Failed to parse planner output {str(e)}",
+            "replan_reason": "LLM returned empty budget",
+            "plan_complete": False
+        }
+
+    try:
+        # Clean and parse itinerary
+        itinerary_raw = itinerary_output.strip()
+        if itinerary_raw.startswith("```json"):
+            itinerary_raw = itinerary_raw[7:].strip()
+        if itinerary_raw.startswith("```"):
+            itinerary_raw = itinerary_raw[3:].strip()
+        if itinerary_raw.endswith("```"):
+            itinerary_raw = itinerary_raw[:-3].strip()
+
+        json_match = re.search(r'\[.*\]', itinerary_raw, re.DOTALL)
+        if json_match:
+            itinerary_raw = json_match.group(0)
+
+        itinerary_data = json.loads(itinerary_raw)
+
+        # Fix dates regardless of what LLM returned
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        for i, day in enumerate(itinerary_data):
+            expected_date = (start + timedelta(days=i)).strftime("%Y-%m-%d")
+            day['date'] = expected_date
+            day['day_number'] = i + 1
+
+        # Clean and parse budget
+        budget_raw = budget_output.strip()
+        if budget_raw.startswith("```json"):
+            budget_raw = budget_raw[7:].strip()
+        if budget_raw.startswith("```"):
+            budget_raw = budget_raw[3:].strip()
+        if budget_raw.endswith("```"):
+            budget_raw = budget_raw[:-3].strip()
+
+        json_match = re.search(r'\{.*\}', budget_raw, re.DOTALL)
+        if json_match:
+            budget_raw = json_match.group(0)
+
+        budget_data = json.loads(budget_raw)
+
+        # Check budget exceeded
+        if budget_data.get('total_estimated_cost', 0) > budget:
+            budget_data['replan_needed'] = True
+            budget_data['replan_reason'] = "Total estimated cost exceeds budget"
+
+        # Validate itinerary length
+        if len(itinerary_data) != num_days:
+            return {
+                **state,
+                "replan_needed": True,
+                "replan_reason": f"Expected {num_days} days but got {len(itinerary_data)}",
+                "plan_complete": False
+            }
+
+        return {
+            **state,
+            "itinerary": itinerary_data,
+            "budget_breakdown": budget_data.get('budget_breakdown', {}),
+            "recommended_hotel": budget_data.get('recommended_hotel', ''),
+            "recommended_flight_or_train": budget_data.get('recommended_flight_or_train', ''),
+            "total_estimated_cost": budget_data.get('total_estimated_cost', 0),
+            "replan_needed": budget_data.get('replan_needed', False),
+            "replan_reason": budget_data.get('replan_reason', ''),
+            "plan_complete": True
+        }
+
+    except Exception as e:
+        print(f"Parse error: {e}")
+        print(f"Itinerary raw: {itinerary_output[:200] if itinerary_output else 'EMPTY'}")
+        print(f"Budget raw: {budget_output[:200] if budget_output else 'EMPTY'}")
+        return {
+            **state,
+            "replan_needed": True,
+            "replan_reason": f"Failed to parse outputs: {str(e)}",
             "plan_complete": False
         }
