@@ -30,6 +30,9 @@ RULES:
 7. Use different restaurants each evening
 8. If weather shows rain — suggest indoor activities
 9. estimated_cost must be realistic — never 0
+10. If weather_data is empty or has a "message" key — mention in Day 1 morning:
+    "Check weather forecast closer to your travel date"
+    Do not invent weather conditions.
 
 Return ONLY a JSON array — no other text, no markdown:
 [
