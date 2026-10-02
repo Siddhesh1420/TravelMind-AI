@@ -30,9 +30,12 @@ RULES:
 7. Use different restaurants each evening
 8. If weather shows rain — suggest indoor activities
 9. estimated_cost must be realistic — never 0
-10. If weather_data is empty or has a "message" key — mention in Day 1 morning:
-    "Check weather forecast closer to your travel date"
-    Do not invent weather conditions.
+10. If weather_data is empty or has a "message" key — add this note 
+    in Day 1 EVENING description only, at the end:
+    " (Weather forecast unavailable — check closer to travel date)"
+    Do NOT put this in morning or afternoon.
+    Do NOT replace any activity with this note.
+    Every morning and afternoon must have a real activity.
 
 Return ONLY a JSON array — no other text, no markdown:
 [
@@ -71,7 +74,11 @@ Available hotels: {hotels_summary}
 
 RULES:
 1. recommended_hotel MUST be from hotels list
-2. recommended_flight_or_train MUST include BOTH outbound AND return options
+2. recommended_flight_or_train MUST include specific train/flight name 
+   and number for both outbound and return.
+   Format exactly: 
+   "Outbound: [Train Name] [Number] (₹[fare]). Return: [Train Name] [Number] (₹[fare])"
+   If no specific data available — write "Check IRCTC for available trains"
 3. Transport cost = (outbound fare + return fare) × {group_size} people
 4. Hotel cost = price per night × {num_days} nights
 5. Food cost = daily food estimate × {group_size} people × {num_days} days

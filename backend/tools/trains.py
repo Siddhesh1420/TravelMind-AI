@@ -20,7 +20,7 @@ def search_trains(from_city,to_city,date,departure_time,arrival_time):
     date_obj = datetime.strptime(date, "%Y-%m-%d")
     day = date_obj.strftime("%A")  # Get the day of the week
     
-    query=f"Trains from {from_city} to {to_city} on {date} on {day} IRCTC schedule timings which departs at or after {departure_time} and reaches at or before {arrival_time} classes . Also find the fare for all the trains."
+    query = f"Direct trains from {from_city} to {to_city} IRCTC train number timings fare 2026. Trains departing after {departure_time} arriving before {arrival_time} on {day} {date}"
     res=tavily_client.search(query,max_results=10)
     
     search_text="\n".join([r['content'] for r in res['results']])
