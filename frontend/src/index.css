@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #08111C;
+  --bg-surface: #101D29;
+  --bg-surface-2: #142533;
+  --accent-mint: #63E6BE;
+  --accent-coral: #FF8066;
+  --accent-sand: #F2D6A2;
+  --text-primary: #F4F7F5;
+  --text-secondary: #9BAAB5;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Sora', sans-serif;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cormorant Garamond', 'Sora', serif;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
