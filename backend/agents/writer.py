@@ -49,6 +49,21 @@ def write_node(state):
             "report_complete": True
         }
     
+    itinerary_slim = [
+    {
+        "day_number": day.get("day_number"),
+        "date": day.get("date"),
+        "morning": day.get("morning", "")[:150],
+        "afternoon": day.get("afternoon", "")[:150],
+        "evening": day.get("evening", "")[:150],
+        "estimated_cost": day.get("estimated_cost", 0)
+    }
+    for day in itinerary
+]
+
+# Trim travel tips
+    travel_tips_slim = travel_tips[:2] if travel_tips else []
+    
     report_prompt = get_report_prompt(
     destination=destination,
     from_city=from_city,
@@ -59,10 +74,10 @@ def write_node(state):
     budget=budget,
     recommended_hotel=recommended_hotel,
     recommended_flight_or_train=recommended_flight_or_train,
-    itinerary=itinerary,
+    itinerary=itinerary_slim,
     budget_breakdown=budget_breakdown,
     weather_data=weather_data,
-    travel_tips=travel_tips,
+    travel_tips=travel_tips_slim,
     transit_note=state.get('transit_note', '')
 )
     
@@ -76,14 +91,14 @@ def write_node(state):
     recommended_hotel=recommended_hotel,
     recommended_flight_or_train=recommended_flight_or_train,
     total_estimated_cost=total_estimated_cost,
-    itinerary=itinerary
+    itinerary=itinerary_slim
 )
     
     whatsapp_msg=invoke_model(model,whatsapp_prompt)
     
     calendar_event=[]
     
-    for day in itinerary:
+    for day in itinerary_slim:
         calendar_event.append({
         "title": f"Day {day['day_number']} — {destination}",
         "date": day['date'],

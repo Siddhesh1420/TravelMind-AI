@@ -1,6 +1,6 @@
 def get_itinerary_prompt(num_days, destination, start_date, end_date, 
                           preferences, weather_data, attractions_slim,
-                          transit_note, orchestrator_feedback,departure_time,arrival_time):
+                          transit_note, orchestrator_feedback,travel_mode,departure_time,arrival_time):
     return f"""
 You are planning a trip to {destination}.
 
@@ -36,7 +36,16 @@ RULES:
     Do NOT put this in morning or afternoon.
     Do NOT replace any activity with this note.
     Every morning and afternoon must have a real activity.
-
+11. Travel mode is {travel_mode}. Day 1 morning MUST mention 
+    travelling by {travel_mode} from source city to {destination}.
+    NEVER suggest driving or any other transport mode on Day 1.
+    
+12. Activity descriptions must be clean and concise — maximum 100 words.
+    Do NOT include raw search snippets, URLs, prices, review counts, 
+    or any text in parentheses from search results.
+    Do NOT prefix activities with "Morning:", "Afternoon:", "Evening:" 
+    — these labels are already shown in the UI.
+    
 Return ONLY a JSON array — no other text, no markdown:
 [
   {{
@@ -74,11 +83,12 @@ Available hotels: {hotels_summary}
 
 RULES:
 1. recommended_hotel MUST be from hotels list
-2. recommended_flight_or_train MUST include specific train/flight name 
-   and number for both outbound and return.
-   Format exactly: 
-   "Outbound: [Train Name] [Number] (₹[fare]). Return: [Train Name] [Number] (₹[fare])"
-   If no specific data available — write "Check IRCTC for available trains"
+2. recommended_flight_or_train MUST use the actual train names from 
+   the provided transport data — even if fare is N/A or missing.
+   Format: "Outbound: [Train Name] [Number] departing [time]. 
+            Return: [Train Name] [Number] departing [time]"
+   Only say "Check IRCTC" if trains list is completely empty.
+   Transport cost — estimate ₹150-300 per person per journey if fare is N/A.
 3. Transport cost = (outbound fare + return fare) × {group_size} people
 4. Hotel cost = price per night × {num_days} nights
 5. Food cost = daily food estimate × {group_size} people × {num_days} days

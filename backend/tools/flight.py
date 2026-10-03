@@ -42,6 +42,11 @@ CITY_ALIASES = {
     "jaipur": "JAI",
     "udaipur": "UDR",
     "jodhpur": "JDH",
+    "new delhi": "DEL",
+    "delhi": "DEL",
+    "bhilai": "RPR", 
+    "raipur": "RPR",
+    "durg": "RPR",
 }
 
 def get_airport_code(city):

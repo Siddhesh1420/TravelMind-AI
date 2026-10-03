@@ -71,6 +71,12 @@ def research_node(state):
         trains=[]
     elif travel_mode=='train':
         trains=call_with_retry(search_trains,from_city,destination,start_date,departure_time=state.get('departure_time',"06:00"),arrival_time=state.get('arrival_time',"23:00")) or []
+        if isinstance(trains, str):
+            try:
+                import json as _json
+                trains = _json.loads(trains)
+            except:
+                trains = []
         flights=[]
     elif travel_mode in ['car','bus','road']:
         trains=[]
@@ -92,11 +98,16 @@ def research_node(state):
             departure_time=state.get('departure_time', '06:00'),
             arrival_time=state.get('arrival_time', '23:00')
         ) or []
+        if isinstance(trains_return, str):
+            try:
+                trains_return = _json.loads(trains_return)
+            except:
+                trains_return = []
     
     # Used to check if no direct flights or train found
     transit_note = ""
     if not flights and not trains and travel_mode in ['flight', 'train']:
-        transit_note = f"No direct {travel_mode} found from {from_city} to {destination}. May require transit via a nearby hub city."
+        transit_note = f"No direct {travel_mode} found from {from_city}. Consider travelling to nearest major city first, then take {travel_mode} to {destination}."
         
     # Hotels    
     hotels=call_with_retry(search_hotels,destination,start_date,end_date,rating=hotel_rating,currency="INR",sort_by=3,adults=group_size,children=0,max_price=budget) or []

@@ -51,6 +51,13 @@ def plan_node(state):
     start_date=state['start_date']
     end_date=state['end_date']
     
+    if isinstance(trains, str):
+        try:
+            import json as _json
+            trains = _json.loads(trains)
+        except:
+            trains = []
+    
     start=datetime.strptime(start_date,"%Y-%m-%d")
     end=datetime.strptime(end_date,"%Y-%m-%d")
     num_days=(end-start).days+1
@@ -76,6 +83,8 @@ def plan_node(state):
 
     # Trim trains
     trains_slim = trains[:MAX_TRAINS]
+    
+    print(f"Trains slim passed to budget: {trains_slim}")
     
     flights_return_slim = [
     {
@@ -113,6 +122,7 @@ def plan_node(state):
         attractions_slim=attractions_slim,
         transit_note=transit_note,
         orchestrator_feedback=orchestrator_feedback,
+        travel_mode=travel_mode,
         departure_time=state.get('departure_time', '06:00'),
         arrival_time=state.get('arrival_time', '23:00')
     )
