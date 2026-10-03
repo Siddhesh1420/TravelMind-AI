@@ -1,7 +1,11 @@
 backend/.env
 backend/venv/
 backend/__pycache__/
+**/__pycache__/
 frontend/node_modules/
 frontend/dist/
 *.pyc
 backend/credentials.json
+backend/token.json
+*.json.backup
+.DS_Store
