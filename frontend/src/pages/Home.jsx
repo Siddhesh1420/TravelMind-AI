@@ -4,6 +4,7 @@ import { DEMO_TRIP } from '../utils/demo'
 
 export default function Home() {
   const navigate = useNavigate()
+  const token = sessionStorage.getItem('token')
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#020817' }}>
@@ -82,7 +83,7 @@ export default function Home() {
       transition={{ duration: 0.6, delay: 0.3 }}
       className="flex flex-col sm:flex-row items-center justify-center gap-4">
       <button
-        onClick={() => navigate('/plan')}
+       onClick={() => { if (!token) {navigate('/login')} else {navigate('/plan')}}}
         className="px-8 py-4 rounded-2xl font-medium text-base transition-all duration-200 hover:opacity-90"
         style={{
           background: 'rgba(45,212,191,0.15)',
@@ -94,7 +95,7 @@ export default function Home() {
         Plan My Trip
       </button>
       <button
-        onClick={() => navigate('/trip', { state: { tripData: DEMO_TRIP, isDemo: true } })}
+      onClick={() => {if (!token) {navigate('/login')} else {navigate('/trip', { state: { tripData: DEMO_TRIP, isDemo: true } })}}}
         className="px-8 py-4 rounded-2xl font-medium text-base transition-all duration-200"
         style={{
           background: 'rgba(255,255,255,0.04)',

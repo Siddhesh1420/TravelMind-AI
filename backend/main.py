@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Request,HTTPException
+from fastapi import FastAPI,Request,HTTPException,Depends
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter,_rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -9,6 +9,8 @@ from agents.graph import travel_mind_graph
 from fastapi.responses import StreamingResponse
 from integrations.whatsapp import send_whatsapp_message
 from integrations.calendar import get_auth_url,exchange_code_for_token,create_calendar_events
+from auth import hash_password, verify_password, create_access_token, get_current_user, users_db, save_users
+from fastapi.security import OAuth2PasswordRequestForm
 import asyncio
 import json
 import uvicorn
@@ -76,7 +78,8 @@ def build_initial_state(trip_input: TripInput):
     }
 @app.post("/plan")
 @limiter.limit("3/minute")
-async def plan_trip(request:Request,trip_input: TripInput):
+async def plan_trip(request:Request,trip_input: TripInput,current_user: str = Depends(get_current_user)):
+    trip_input.user_id = current_user
     
     # Validation of input
     valid_modes = ['flight', 'train', 'car', 'bus', 'road']
@@ -146,3 +149,23 @@ async def create_events(request: Request, data: dict):
         return {"status": "success", "message": f"Created {len(calendar_events)} calendar events"}
     else:
         raise HTTPException(status_code=400, detail="Failed to create events — please connect Google Calendar first")
+    
+@app.post("/register")
+async def register(form_data: OAuth2PasswordRequestForm = Depends()):
+    if form_data.username in users_db:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    users_db[form_data.username] = hash_password(form_data.password)
+    save_users(users_db) 
+    return {"message": "User registered successfully"}
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = users_db.get(form_data.username)
+    if not user or not verify_password(form_data.password, user):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": form_data.username})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/me")
+async def get_me(current_user: str = Depends(get_current_user)):
+    return {"username": current_user}

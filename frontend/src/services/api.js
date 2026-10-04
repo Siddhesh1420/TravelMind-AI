@@ -8,7 +8,10 @@ const api = axios.create({
 })
 
 export const planTrip = async (tripData) => {
-  const response = await api.post('/plan', tripData)
+  const token = sessionStorage.getItem('token')
+  const response = await api.post('/plan', tripData, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
   return response.data
 }
 

@@ -1,8 +1,18 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation,useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useState} from 'react'
 
 export default function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [username, setUsername] = useState(sessionStorage.getItem('username'))
+
+  const handleSignOut = () => {
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('username')
+    setUsername(null)  // ← update state immediately
+    navigate('/')
+  }
 
   return (
     <motion.nav
@@ -63,17 +73,25 @@ export default function Navbar() {
           </div>
 
           {/* CTA */}
-          <Link to="/plan"
-            className="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-90"
-            style={{
-              background: 'rgba(45,212,191,0.12)',
-              border: '1px solid rgba(45,212,191,0.2)',
-              color: '#2DD4BF',
-              fontFamily: 'Inter',
-              boxShadow: '0 0 20px rgba(45,212,191,0.08)'
-            }}>
-            Plan a Trip
-          </Link>
+          {username ? (
+            <div className="flex items-center gap-3">
+                <span style={{ color: 'rgba(148,163,184,0.7)', fontFamily: 'JetBrains Mono', fontSize: '0.7rem' }}>
+                {username}
+                </span>
+                <button
+                onClick={handleSignOut}
+                className="px-4 py-2 rounded-xl text-sm"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: 'rgba(252,165,165,0.8)', fontFamily: 'Inter' }}>
+                Sign out
+                </button>
+            </div>
+            ) : (
+            <Link to="/login"
+                className="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-90"
+                style={{ background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.2)', color: '#2DD4BF', fontFamily: 'Inter', boxShadow: '0 0 20px rgba(45,212,191,0.08)' }}>
+                Sign in
+            </Link>
+            )}
         </div>
       </div>
     </motion.nav>
