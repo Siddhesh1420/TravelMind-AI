@@ -99,7 +99,8 @@ async def plan_trip(request:Request,trip_input: TripInput,current_user: str = De
         raise HTTPException(status_code=400, detail="Minimum budget is ₹2000")
 
     initial_state = build_initial_state(trip_input)
-    return travel_mind_graph.invoke(initial_state)
+    config = {"configurable": {"thread_id": current_user}}
+    return travel_mind_graph.invoke(initial_state,config=config)
 
 @app.get("/health")
 def get_health():

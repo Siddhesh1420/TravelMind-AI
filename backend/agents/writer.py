@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # Look for file i
 from tools.flight import get_airport_code
 from model import get_model,invoke_model
 from prompts.writer_prompt import get_report_prompt,get_whatsapp_prompt
+from memory.store import save_trip
 load_dotenv()
 
 model=get_model()
@@ -120,6 +121,10 @@ def write_node(state):
     # Hotel booking link
     booking_links['hotel'] = f"https://www.booking.com/search.html?ss={destination}&checkin={start_date}&checkout={end_date}&group_adults={group_size}"
     
+    # Save trip history
+    user_id = state.get('user_id', 'default')
+    if user_id and user_id != 'default':
+        save_trip(user_id, state)
     return{
         **state,
         "formatted_report":report,

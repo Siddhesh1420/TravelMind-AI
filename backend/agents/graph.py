@@ -3,10 +3,15 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from langgraph.graph import StateGraph,END,START
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.store.memory import InMemoryStore
 from agents.research import research_node
 from agents.planner import plan_node
 from agents.writer import write_node
 from agents.orchestrator import orchestrator_node
+
+memory=MemorySaver()
+store=InMemoryStore()
 
 class TravelState(TypedDict):
     # User input
@@ -92,7 +97,7 @@ def build_graph():
     graph.add_edge("planner","orchestrator")
     graph.add_edge("writer","orchestrator")
     
-    return graph.compile()
+    return graph.compile(checkpointer=memory,store=store)
 
 # Compiling the graph
 travel_mind_graph=build_graph()
