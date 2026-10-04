@@ -1,30 +1,37 @@
-from tavily import TavilyClient
+import requests
+import urllib3
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..')) # To check a file in previous directory too
-from model import get_model,invoke_model
-from dotenv import load_dotenv
+import json as _json
 from datetime import datetime
 
-load_dotenv()
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-api=os.getenv('TAVILY_API_KEY')
+original_request = requests.Session.request
+def patched_request(self, *args, **kwargs):
+    kwargs['verify'] = False
+    return original_request(self, *args, **kwargs)
+requests.Session.request = patched_request
 
-tavily_client = TavilyClient(api_key=api)
-model=get_model()
+from tavily import TavilyClient
+from model import get_model, invoke_model
+from config.settings import TAVILY_API_KEY
 
-def search_trains(from_city,to_city,date,departure_time,arrival_time):
-    """
-    Search trains between the cities"""
+tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
+model = get_model()
+
+def search_trains(from_city, to_city, date, departure_time="06:00", arrival_time="22:00"):
+    """Search trains between the cities"""
     date_obj = datetime.strptime(date, "%Y-%m-%d")
-    day = date_obj.strftime("%A")  # Get the day of the week
-    
+    day = date_obj.strftime("%A")
+
     query = f"Direct trains from {from_city} to {to_city} IRCTC train number timings fare 2026. Trains departing after {departure_time} arriving before {arrival_time} on {day} {date}"
-    res=tavily_client.search(query,max_results=10)
-    
+    res = tavily_client.search(query, max_results=10)
+
     search_text = "\n".join([r['content'][:200] for r in res['results'][:5]])
-    
+
     prompt = f'''
 Return ONLY a valid JSON array. No explanation. No markdown. No thinking.
 
@@ -48,10 +55,8 @@ Search results to extract from:
 
 Return top 3 trains as a JSON array only. Sort by fare first, then duration, then closest to departure time {departure_time}. Nothing else.
 '''
-    ans=invoke_model(model,prompt)
+    ans = invoke_model(model, prompt)
     try:
-        import json as _json
-        # Clean markdown
         ans = ans.strip()
         if ans.startswith("```json"):
             ans = ans[7:].strip()
@@ -59,21 +64,15 @@ Return top 3 trains as a JSON array only. Sort by fare first, then duration, the
             ans = ans[3:].strip()
         if ans.endswith("```"):
             ans = ans[:-3].strip()
-        
-        parsed = _json.loads(ans)
-        return parsed  # return list not string
+        return _json.loads(ans)
     except:
-        return []  # return empty list on failure
+        return []
 
-
-if __name__=="__main__":
-    from_city=input("Enter departure city: ")
-    to_city=input("Enter arrival city: ")
-    date=input("Enter date (YYYY-MM-DD): ")
-    departure_time=input("Enter departure time: in HH:MM format ")
-    arrival_time=input("Enter arrival time: ")
-    res=search_trains(from_city,to_city,date,departure_time,arrival_time)
+if __name__ == "__main__":
+    from_city = input("Enter departure city: ")
+    to_city = input("Enter arrival city: ")
+    date = input("Enter date (YYYY-MM-DD): ")
+    departure_time = input("Enter departure time (HH:MM): ")
+    arrival_time = input("Enter arrival time (HH:MM): ")
+    res = search_trains(from_city, to_city, date, departure_time, arrival_time)
     print(res)
-    
-    
-    

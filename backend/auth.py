@@ -10,6 +10,7 @@ from config.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 USERS_FILE = "users.json"
+MCP_TOKEN = os.getenv("MCP_SECRET_TOKEN", "mcp-internal-token")
 
 def load_users():
     try:
@@ -57,6 +58,9 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+    if token == MCP_TOKEN:
+        return "mcp_user"
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")

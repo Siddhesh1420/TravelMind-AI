@@ -1,32 +1,52 @@
+import requests
+import urllib3
+import httpx
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Patch requests SSL
+original_request = requests.Session.request
+def patched_request(self, *args, **kwargs):
+    kwargs['verify'] = False
+    return original_request(self, *args, **kwargs)
+requests.Session.request = patched_request
+
+# Patch httpx SSL (used by Groq client)
+original_init = httpx.Client.__init__
+def patched_init(self, *args, **kwargs):
+    kwargs['verify'] = False
+    original_init(self, *args, **kwargs)
+httpx.Client.__init__ = patched_init
+
+original_async_init = httpx.AsyncClient.__init__
+def patched_async_init(self, *args, **kwargs):
+    kwargs['verify'] = False
+    original_async_init(self, *args, **kwargs)
+httpx.AsyncClient.__init__ = patched_async_init
+
 import time
 from config.settings import (
     USE_LOCAL, GROQ_MODEL, OLLAMA_MODEL,
     LLM_TEMPERATURE, LLM_MAX_TOKENS, LLM_SLEEP_SECONDS,
-    GROQ_API_KEY, RETRY_BACKOFF,MAX_RETRIES
+    GROQ_API_KEY, RETRY_BACKOFF, MAX_RETRIES
 )
 
-print("USE_LOCAL : ",USE_LOCAL)
+print("USE_LOCAL : ", USE_LOCAL)
+
 def get_model():
     if USE_LOCAL:
         from langchain_ollama import ChatOllama
-        model=ChatOllama(model=OLLAMA_MODEL,temperature=LLM_TEMPERATURE)
-        
+        model = ChatOllama(model=OLLAMA_MODEL, temperature=LLM_TEMPERATURE)
     else:
         from groq import Groq
-        model=Groq(api_key=GROQ_API_KEY)
-        # from huggingface_hub import InferenceClient
-        # hf_api=os.getenv('HUGGINGFACE_API')
-        # model=InferenceClient(api_key=hf_api)
-        
+        model = Groq(api_key=GROQ_API_KEY)
     return model
-        
-def invoke_model(model,prompt):
-    """
-    Invoking model based on used_local
-    """
+
+def invoke_model(model, prompt):
+    """Invoking model based on USE_LOCAL"""
     time.sleep(LLM_SLEEP_SECONDS)
     if USE_LOCAL:
-        result=model.invoke(prompt)
+        result = model.invoke(prompt)
         return result.content
     else:
         for attempt in range(MAX_RETRIES):
@@ -54,14 +74,3 @@ def invoke_model(model,prompt):
                 else:
                     raise e
         return ""
-        
-    #     result = model.chat.completions.create(
-    #     model="zai-org/GLM-5.2",
-    #     messages=[
-    #         {
-    #             "role": "user",
-    #             "content": prompt
-    #         }
-    #     ],
-    #     max_tokens=4000
-    # )

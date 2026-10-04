@@ -1,14 +1,15 @@
 import requests,os
 from dotenv import load_dotenv
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 def get_weather(city:str):
     """
     Fetch the weather data for a given city between the dates specified in the form of 
     dictionary"""
-    
     api=os.getenv("OPENWEATHERMAP_API_KEY")
-    response=requests.get(f'https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api}&units=metric')
+    response = requests.get(f'https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api}&units=metric',verify=False)
     res=response.json()
     if 'list' not in res:
         print(f"Weather API error for {city}: {res.get('message', 'Unknown error')}")

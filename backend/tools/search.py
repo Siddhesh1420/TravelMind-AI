@@ -1,15 +1,24 @@
-from tavily import TavilyClient
+import requests
+import urllib3
 import os
-from dotenv import load_dotenv
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-load_dotenv()
-api=os.getenv('TAVILY_API_KEY')
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-tavily_client = TavilyClient(api_key=api)
+original_request = requests.Session.request
+def patched_request(self, *args, **kwargs):
+    kwargs['verify'] = False
+    return original_request(self, *args, **kwargs)
+requests.Session.request = patched_request
+
+from tavily import TavilyClient
+from config.settings import TAVILY_API_KEY
+
+tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
 
 def search(query):
-    """
-    Search for a query using the Tavily API and return the results"""
+    """Search for a query using the Tavily API and return the results"""
     response = tavily_client.search(query)
     return response['results']
 
