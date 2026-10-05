@@ -79,7 +79,35 @@ export const DEMO_TRIP = {
     train: "https://www.irctc.co.in/nget/train-search",
     hotel: "https://www.booking.com/search.html?ss=Manali"
   },
-  formatted_report: "",
+  formatted_report: `# Manali Adventure Trip 🏔️
+
+    ## Quick Summary
+    Manali is a breathtaking hill station in Himachal Pradesh, perfect for adventure seekers and nature lovers.
+
+    ## Day by Day Plan
+
+    ### Day 1 - Arrival
+    - Morning: Travel from Delhi to Manali by train
+    - Afternoon: Check into Jain Residency, explore Old Manali
+    - Evening: Dinner at Chopsticks Restaurant
+
+    ### Day 2 - Solang Valley
+    - Morning: Explore Solang Valley
+    - Afternoon: Trekking and adventure activities
+    - Evening: Dinner at Siddu
+
+    ## Hotel
+    Jain Residency - ₹345/night, 4.8 rating
+
+    ## Budget
+    | Category | Cost |
+    |----------|------|
+    | Transport | ₹4,800 |
+    | Hotel | ₹9,000 |
+    | Food | ₹6,000 |
+    | Activities | ₹5,200 |
+    | Total | ₹25,000 |
+    `,
   whatsapp_message: "",
   calendar_events: [
   {
