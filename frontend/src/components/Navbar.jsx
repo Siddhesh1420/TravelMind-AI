@@ -54,7 +54,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { label: 'Discover', path: '/' },
-              { label: 'Plan', path: '/plan' }
+              { label: 'Plan', path: '/plan' },
+              { label: 'History', path: '/history' }
             ].map(({ label, path }) => (
               <Link key={path} to={path}
                 className="px-4 py-2 rounded-xl text-sm transition-all duration-200"

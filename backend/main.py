@@ -170,3 +170,31 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/me")
 async def get_me(current_user: str = Depends(get_current_user)):
     return {"username": current_user}
+
+@app.get("/trips/history")
+async def get_trip_history(current_user: str = Depends(get_current_user)):
+    from memory.store import load_trip_history
+    history = load_trip_history()
+    user_trips = history.get(current_user, [])
+    # Return without formatted_report to keep response small
+    summary = [{
+        "destination": t.get('destination'),
+        "from_city": t.get('from_city'),
+        "start_date": t.get('start_date'),
+        "end_date": t.get('end_date'),
+        "budget": t.get('budget'),
+        "travel_mode": t.get('travel_mode'),
+        "total_cost": t.get('total_estimated_cost'),
+        "group_size": t.get('group_size'),
+        "index": i
+    } for i, t in enumerate(user_trips)]
+    return {"trips": summary, "total": len(summary)}
+
+@app.get("/trips/history/{index}")
+async def get_trip_detail(index: int, current_user: str = Depends(get_current_user)):
+    from memory.store import load_trip_history
+    history = load_trip_history()
+    user_trips = history.get(current_user, [])
+    if index >= len(user_trips):
+        raise HTTPException(status_code=404, detail="Trip not found")
+    return user_trips[index]

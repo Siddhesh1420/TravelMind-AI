@@ -7,6 +7,7 @@ import TripResult from './pages/TripResult'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import TripHistory from './pages/TripHistory'
 
 
 function ScrollToTop() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/trip" element={<ProtectedRoute><TripResult /></ProtectedRoute>} />
           <Route path="/login" element={<Login/>}/>
           <Route path="/register" element={<Register/>}/>
+          <Route path="/history" element={<ProtectedRoute><TripHistory /></ProtectedRoute>} />
         </Routes>
       </div>
     </BrowserRouter>

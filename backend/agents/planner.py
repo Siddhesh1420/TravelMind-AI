@@ -10,9 +10,11 @@ from config.settings import (
 )
 import json
 from prompts.planner_prompt import get_itinerary_prompt,get_budget_prompt
+from memory.store import get_last_trip
 from datetime import datetime,timedelta # for date validation
 import time
 import re
+
 model=get_model()
 
 def summarize_hotels(hotels):
@@ -50,6 +52,8 @@ def plan_node(state):
     orchestrator_feedback = state.get('orchestrator_feedback', '')
     start_date=state['start_date']
     end_date=state['end_date']
+    user_id = state.get('user_id', 'default')
+    last_trip = get_last_trip(user_id)
     
     if isinstance(trains, str):
         try:
@@ -153,7 +157,8 @@ def plan_node(state):
     trains_return_slim=trains_return_slim,
     travel_mode=travel_mode,
     departure_time=state.get('departure_time', '06:00'),
-    arrival_time=state.get('arrival_time', '23:00')
+    arrival_time=state.get('arrival_time', '23:00'),
+    last_trip=last_trip
 )
 
     print(f"Budget prompt tokens: {len(budget_prompt) // 4}")

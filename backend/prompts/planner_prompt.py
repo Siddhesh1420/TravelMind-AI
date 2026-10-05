@@ -62,8 +62,12 @@ Return ONLY a JSON array — no other text, no markdown:
 def get_budget_prompt(destination, num_days, budget, group_size,
                        hotels_summary, flights_slim, trains_slim,
                        flights_return_slim, trains_return_slim,
-                       travel_mode, departure_time, arrival_time):
+                       travel_mode, departure_time, arrival_time,last_trip=None):
+    memory_hint=""
+    if last_trip:
+        memory_hint = f"Note: User previously visited {last_trip.get('destination')} from {last_trip.get('from_city')} by {last_trip.get('travel_mode')}. Consider this for personalization."
     return f"""
+{memory_hint}
 Given this trip to {destination} for {num_days} days:
 - Total budget: ₹{budget}
 - Group size: {group_size} people
@@ -99,7 +103,9 @@ RULES:
    options like train instead of flight, or reduce group size."
    If total exceeds budget — set replan_needed: true with specific reason.
    Never return a plan where total_estimated_cost > {budget}.
-8. Select transport closest to departure time {departure_time}
+8. Select transport closest to departure time {departure_time}.
+   For return journey — prefer trains departing after 06:00.
+   Avoid trains departing between 00:00 and 04:00 unless no other option.
 
 Return ONLY this JSON:
 {{
