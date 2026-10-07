@@ -77,13 +77,15 @@ def plan_node(state):
     
     # Trim flights
     flights_slim = [
-        {
-            "price": f.get("price", ""),
-            "duration": f.get("total_duration", ""),
-            "airline": f.get("flights", [{}])[0].get("airline", "")
-        }
-        for f in flights[:MAX_FLIGHTS]
-    ]
+    {
+        "fare_inr": f.get("price", 0),  # rename to fare_inr
+        "duration_mins": f.get("total_duration", 0),
+        "airline": f.get("flights", [{}])[0].get("airline", ""),
+        "flight_number": f.get("flights", [{}])[0].get("flight_number", ""),
+        "departure_time": f.get("flights", [{}])[0].get("departure_airport", {}).get("time", "")
+    }
+    for f in flights[:MAX_FLIGHTS]
+]
 
     # Trim trains
     trains_slim = trains[:MAX_TRAINS]
@@ -92,12 +94,15 @@ def plan_node(state):
     
     flights_return_slim = [
     {
-        "price": f.get("price", ""),
-        "duration": f.get("total_duration", ""),
-        "airline": f.get("flights", [{}])[0].get("airline", "")
+        "fare_inr": f.get("price", 0),  # rename to fare_inr
+        "duration_mins": f.get("total_duration", 0),
+        "airline": f.get("flights", [{}])[0].get("airline", ""),
+        "flight_number": f.get("flights", [{}])[0].get("flight_number", ""),
+        "departure_time": f.get("flights", [{}])[0].get("departure_airport", {}).get("time", "")
     }
     for f in flights_return[:MAX_FLIGHTS]
 ]
+
     trains_return_slim = trains_return[:MAX_TRAINS]
         
     transit_note=state.get('transit_note','')
@@ -143,7 +148,10 @@ def plan_node(state):
             "replan_reason": "LLM returned empty itinerary",
             "plan_complete": False
         }
-
+    
+    print(f"flights_slim before budget: {flights_slim}")
+    print(f"flights_return_slim before budget: {flights_return_slim}")
+    
     # Call 2 — Generate budget and recommendations
     budget_prompt = get_budget_prompt(
     destination=destination,
@@ -210,6 +218,7 @@ def plan_node(state):
         if json_match:
             budget_raw = json_match.group(0)
 
+        budget_raw = budget_raw.replace('₹', 'Rs')
         budget_data = json.loads(budget_raw)
 
         # Check budget exceeded

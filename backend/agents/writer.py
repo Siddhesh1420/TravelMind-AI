@@ -121,11 +121,7 @@ def write_node(state):
     # Hotel booking link
     booking_links['hotel'] = f"https://www.booking.com/search.html?ss={destination}&checkin={start_date}&checkout={end_date}&group_adults={group_size}"
     
-    # Save trip history
-    user_id = state.get('user_id', 'default')
-    if user_id and user_id != 'default':
-        save_trip(user_id, state)
-    return{
+    result={
         **state,
         "formatted_report":report,
         "whatsapp_message":whatsapp_msg,
@@ -133,3 +129,9 @@ def write_node(state):
         "booking_links": booking_links,
         "report_complete": True
     }
+    # Save trip history
+    user_id = state.get('user_id', 'default')
+    if user_id and user_id != 'default':
+        save_trip(user_id, result)
+        
+    return result

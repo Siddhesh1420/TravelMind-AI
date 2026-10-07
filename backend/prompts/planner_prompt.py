@@ -87,15 +87,21 @@ Available hotels: {hotels_summary}
 
 RULES:
 1. recommended_hotel MUST be from hotels list
-2. recommended_flight_or_train MUST use the actual train names from 
-   the provided transport data — even if fare is N/A or missing.
-   Format: "Outbound: [Train Name] [Number] departing [time]. 
-            Return: [Train Name] [Number] departing [time]"
-   Only say "Check IRCTC" if trains list is completely empty.
-   Transport cost — estimate ₹150-300 per person per journey if fare is N/A.
-3. Transport cost = (outbound fare + return fare) × {group_size} people
+2. recommended_flight_or_train MUST use actual data from provided transport.
+   If travel_mode is 'flight' — use flights data, NOT trains data.
+   If travel_mode is 'train' — use trains data, NOT flights data.
+   Format for flight: "Outbound: [Airline] (₹[price]), Return: [Airline] (₹[price])"
+   Format for train: "Outbound: [Train Name] [Number] departing [time], Return: [Train Name] [Number]"
+   Only say "Check IRCTC" if BOTH flights AND trains lists are completely empty.
+3. Transport cost for flight = (outbound fare_inr + return fare_inr) × {group_size} people
+   Transport cost for train = (outbound fare + return fare) × {group_size} people
+   Never leave transport as 0 if transport data exists.
 4. Hotel cost = price per night × {num_days} nights
-5. Food cost = daily food estimate × {group_size} people × {num_days} days
+5. Food cost MUST be calculated as minimum ₹500 per person per day.
+   Food = ₹500 × {group_size} × {num_days} = ₹{500 * group_size * num_days} minimum.
+   Never leave food as 0.
+   Activities = ₹300 × {group_size} × {num_days} minimum.
+   Never leave activities as 0.
 6. budget_breakdown total MUST equal total_estimated_cost
 7. CRITICAL: total_estimated_cost MUST be less than or equal to ₹{budget}.
    If transport alone exceeds the budget — set replan_needed: true and 
